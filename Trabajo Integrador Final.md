@@ -312,23 +312,23 @@ Ver agenda
 Modificar servicio
 ```
 ---
-**Sprint 3 — Aplicación del técnico**
+**Sprint 3 — Portal web del técnico**
 
 Semana 6 y 7
 
-Implementar interfaz mobile:
+Implementar interfaz web responsiva para uso desde teléfonos móviles:
 
 - login;
 - agenda del día;
 - detalle del servicio;
-- ubicación;
-- cambiar estado;
-- observaciones;
-- finalización.
+- visualización de ubicación;
+- cambio de estado;
+- registro de observaciones;
+- finalización del servicio.
 
 Entregable
 
-Un técnico real puede realizar un servicio completo utilizando el sistema.
+Un técnico real puede realizar un servicio completo utilizando la aplicación web desde un teléfono móvil.
 
 ---
 **Sprint 4 — Rutas y notificaciones**
