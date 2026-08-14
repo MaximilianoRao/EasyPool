@@ -1,7 +1,7 @@
 # EasyPool
 Sistema web/móvil para la automatización de agenda, clientes y mantenimiento de piscinas.
 
-<br><br>
+<br>
 
 **Grupo**: 163
 
