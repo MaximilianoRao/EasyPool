@@ -25,7 +25,7 @@
 
 ## Definición Refinada del Problema
 
-El dueño de una empresa de mantenimiento de piscinas que gestiona turnos de limpieza y visitas técnicas enfrenta el problema de que la planificación manual en Excel y la comunicación vía WhatsApp generan una pérdida de aproximadamente 4 horas diarias en coordinación administrativa y esto escala con la camtidad de empleados de campo. Esta desconexión de la información provoca retrabajo por cambios de último minuto, falta de visibilidad del personal en tiempo real y demoras en la atención al cliente. Una solución de software podría centralizar la agenda, automatizar la asignación de rutas y permitir el seguimiento del estado de los servicios en una única plataforma accesible desde cualquier dispositivo
+El dueño de una empresa de mantenimiento de piscinas que gestiona turnos de limpieza y visitas técnicas enfrenta el problema de que la planificación manual en Excel y la comunicación vía WhatsApp generan una pérdida de aproximadamente 4 horas diarias en coordinación administrativa y esto escala con la camtidad de empleados de campo. Esta desconexión de la información provoca retrabajo por cambios de último minuto, falta de información actualizada sobre la ubicación y el estado del personal en momentos relevantes del servicio y demoras en la atención al cliente. Una solución de software podría centralizar la agenda, automatizar la asignación de rutas y permitir el seguimiento del estado de los servicios en una única plataforma accesible desde cualquier dispositivo
 
 ### Identificación de Actores y Necesidades
 
@@ -222,8 +222,8 @@ Desde celular:
 
 **Rutas**
 
-- Optimización de ruta diaria, no “IA de rutas dinámicas”.
-El sistema propone un orden optimizado considerando ubicación. El administrador puede aceptarlo o modificarlo.
+- Optimización dinámica de ruta diaria y reasignación automática.
+El sistema propone un orden optimizado considerando ubicación y reasignar técnicos mas cercanos a la ubicación de los servicios. El administrador puede aceptarlo o modificarlo.
 
 **GPS**
 - Ubicacion de llegada.
@@ -232,7 +232,6 @@ El sistema propone un orden optimizado considerando ubicación. El administrador
 **No incluye**
 - Reasignación automática
 - IA predictiva
-- Optimización dinámica en tiempo real
 - App nativa Android/iOS
 - Facturación
 - Pagos online
