@@ -79,7 +79,7 @@ La solución propuesta no solo "digitaliza" el Excel, sino que transforma el pro
 ### Justificación de la elección
 La elección se fundamenta en los siguientes pilares:
 
-- Naturaleza del problema: El sistema requiere tiempo real para la reasignación dinámica de turnos y visibilidad del personal. Node.js destaca precisamente en escenarios de alta concurrencia y comunicación instantánea
+- Naturaleza del problema: El sistema requiere actualizar la información de los servicios de manera ágil, permitiendo la comunicación entre el personal administrativo y los técnicos. Node.js resulta adecuado para este tipo de aplicaciones web debido a su modelo de ejecución orientado en operaciones de entrada/salida y su capacidad de manejar multiples solicitudes eficazmente.
 
 - Como ya conocemos JavaScript, usarlo tanto en el frontend como en el backend (Node.js) unifica el lenguaje, acelerando la escritura y revisión de código. Esto evita el alto costo de aprendizaje que podría retrasar la solución.
 
