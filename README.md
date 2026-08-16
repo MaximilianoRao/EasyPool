@@ -8,9 +8,10 @@ Sistema web/móvil para la automatización de agenda, clientes y mantenimiento d
 **Integrantes**:
 
 - Tomás José Buforn,
-- Oscar Londero,
 - Maximiliano Rao,
 - Eric Suarez Dubs
+
+**Tutor**: Oscar Londero
 
 <br>
 
