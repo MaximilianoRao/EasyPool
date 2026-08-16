@@ -14,7 +14,6 @@
 **Integrantes**:
 
 - Tomás José Buforn,
-- Oscar Londero,
 - Maximiliano Rao,
 - Eric Suarez Dubs
 
@@ -37,13 +36,13 @@ El dueño de una empresa de mantenimiento de piscinas que gestiona turnos de lim
 ### Análisis del Flujo de Trabajo
 
 - Estado Actual: El dueño revisa pedidos → Carga manualmente en Excel → Diseña la ruta a criterio propio → Envía capturas/mensajes por WhatsApp → Si hay un cambio, debe contactar a cada técnico individualmente y actualizar el Excel.
-- Impacto de la Ineficiencia: La información está dispersa lo que impide el crecimiento de la empresa al no poder gestionar más clientes con los mismos recursos.
+- Impacto de la Ineficiencia: La información, al estar dispersa en diferentes medios, podría limitar la capacidad de la empresa de aumentar la cantidad de servicios sin incrementar proporcionalmente el esfuerzo administrativo.
 
 
 ### Propuesta de Valor Agregado
 La solución propuesta no solo "digitaliza" el Excel, sino que transforma el proceso porque:
-- Reduce errores y costos: Al automatizar la ruta, se minimiza el consumo de combustible y el tiempo muerto entre servicios.
-- Permite algo antes imposible: La reprogramación dinámica. Si un técnico se demora, el sistema puede recomendar cambiar el tecnico encargado de esa tarea por otro y el administrador decide si aceptarlo, algo imposible de hacer manualmente en tiempo real.
+- Optimización de recorridos: La optimización del orden de los servicios busca reducir los tiempos de traslado y el tiempo entre servicios, así como el consumo de combustible.
+- Permite reprogramación dinámica: Si un técnico se demora, el sistema puede recomendar reasignar el servicio a otro técnico y el administrador decide si aceptarlo. Con el sistema utilizado actualmente por la empresa, esta operación podría realizarse con herramientas como Excel o WhatsApp, pero requeriría mayor esfuerzo, tiempo y coordinacion.
 - Mejora la experiencia: El técnico trabaja con una herramienta profesional y el dueño recupera tiempo para tareas estratégicas
 
 
@@ -55,10 +54,10 @@ La solución propuesta no solo "digitaliza" el Excel, sino que transforma el pro
 
 ¿Por qué un calendario compartido de Google o Excel online no es suficiente para este caso específico? 
 
->Porque digitalizar un proceso sin transformar el flujo no aporta un valor agregado real.La solución propuesta destaca porque:
->- **Automatiza lo manual**: No es solo una lista, sino que gestiona la agenda de forma automática, algo que Excel no hace por sí solo.
->- **Desarrollo a medida**: Una plataforma a medida puede detectar patrones, optimizar rutas por cercanía y emitir alertas automáticas de cambios, transformando la operación de la empresa de una manera que las herramientas genéricas no permiten.
->- **Centraliza información desconectada**: A diferencia de hojas de cálculo aisladas, el software centraliza la gestión y el historial en una única plataforma accesible, eliminando la duplicación de datos y errores de coordinación.
+>Porque digitalizar un proceso sin transformar el flujo no aportaría un valor agregado real. La solución propuesta destaca porque:
+>- **Automatiza lo manual**: No solo es una lista, sino que gestiona la agenda de forma automática, algo que al utilizar Excel, requeriría mas tiempo y esfuerzo.
+>- **Desarrollo a medida**: Una plataforma a medida puede detectar patrones, optimizar rutas por cercanía y emitir alertas automáticas de cambios, transformando la operación de la empresa de una manera que con el uso de herramientas genéricas podría costar y/o tardar más.
+>- **Centraliza información desconectada**: A diferencia de hojas de cálculo aisladas, el software centraliza la gestión y el historial en una única plataforma accesible, eliminando la duplicación de datos y errores de coordinación que podrían surgir.
 
 
 <br>
@@ -84,7 +83,7 @@ La elección se fundamenta en los siguientes pilares:
 
 - Como ya conocemos JavaScript, usarlo tanto en el frontend como en el backend (Node.js) unifica el lenguaje, acelerando la escritura y revisión de código. Esto evita el alto costo de aprendizaje que podría retrasar la solución.
 
-- Simplicidad vs. Complejidad: Se busca evitar la sobreingeniería un stack PERN (PostgreSQL, Express, React, NodeJS) es una solución estándar y madura que resuelve el problema sin recurrir a arquitecturas innecesariamente complejas como microservicios.
+- Simplicidad vs. Complejidad: Se busca evitar la sobreingeniería un stack PERN (PostgreSQL, Express, React, NodeJS) es una solución estándar y madura que puede resolver el problema sin necesidad de recurrir a arquitecturas innecesariamente complejas como microservicios.
 
 
 ### Escalabilidad
@@ -117,7 +116,7 @@ La planificación y coordinación de los servicios se realiza mediante Excel y W
 
 #### Hipótesis de producto
 
-Si centralizamos la agenda, asignamos servicios a técnicos y permitimos que estos actualicen su estado desde el celular, entonces podremos reducir significativamente el tiempo administrativo y los errores de coordinación sin aumentar la carga operativa.
+Si centralizamos la agenda, asignamos servicios a técnicos y permitimos que estos actualicen su estado desde el celular, entonces se podría reducir significativamente el tiempo administrativo y los errores de coordinación sin aumentar la carga operativa.
 
 ### Objetivo general
 
