@@ -25,7 +25,10 @@
 
 ## Definición Refinada del Problema
 
-El dueño de una empresa de mantenimiento de piscinas que gestiona turnos de limpieza y visitas técnicas enfrenta el problema de que la planificación manual en Excel y la comunicación vía WhatsApp generan una pérdida de aproximadamente 4 horas diarias en coordinación administrativa y esto escala con la camtidad de empleados de campo. Esta desconexión de la información provoca retrabajo por cambios de último minuto, falta de información actualizada sobre la ubicación y el estado del personal en momentos relevantes del servicio y demoras en la atención al cliente. Una solución de software podría centralizar la agenda, automatizar la asignación de rutas y permitir el seguimiento del estado de los servicios en una única plataforma accesible desde cualquier dispositivo
+El dueño de una empresa de mantenimiento de piscinas que gestiona turnos de limpieza y visitas técnicas enfrenta problemas en la planificación y coordinación de los servicios. Actualmente, la planificacion se realiza manualmente mediante planillas de Excel y la comunicación con el personal de campo se lleva a cabo vía WhatsApp.
+Según una estimación del dueño durante la entrevista, informó que se destinan aproximadamente 4 horas diarias a tareas de planificacion y coordinacion administrativa. Asimismo, los cambios de ultimo momento y la necesidad de reorganizar los servicios generan retrabajo adicional. Estos valores serán tomados como estimaciones del entrevistado y no como mediciones objetivas del tiempo empleado, hasta que puedan ser validados mediante un registro sistematico de las tareas y los tiempos involucrados.
+
+Esta desconexión de la información puede provocar retrabajo por cambios de último minuto, dificultades para conocer la ubicacion y el estado del personal en momentos relevantes del servicio y demoras en la atención al cliente. Como hipotesis de solución, una plataforma centralizada podría permitir gestionar la agenda, automatizar la asignación de rutas y registrar el estado de los servicios en una única plataforma accesible desde cualquier dispositivo.
 
 ### Identificación de Actores y Necesidades
 
@@ -40,7 +43,7 @@ El dueño de una empresa de mantenimiento de piscinas que gestiona turnos de lim
 
 
 ### Propuesta de Valor Agregado
-La solución propuesta no solo "digitaliza" el Excel, sino que transforma el proceso porque:
+La solución propuesta no solo "digitalizaría" el Excel, sino que transformaría el proceso porque:
 - Optimización de recorridos: La optimización del orden de los servicios busca reducir los tiempos de traslado y el tiempo entre servicios, así como el consumo de combustible.
 - Permite reprogramación dinámica: Si un técnico se demora, el sistema puede recomendar reasignar el servicio a otro técnico y el administrador decide si aceptarlo. Con el sistema utilizado actualmente por la empresa, esta operación podría realizarse con herramientas como Excel o WhatsApp, pero requeriría mayor esfuerzo, tiempo y coordinacion.
 - Mejora la experiencia: El técnico trabaja con una herramienta profesional y el dueño recupera tiempo para tareas estratégicas
@@ -49,7 +52,7 @@ La solución propuesta no solo "digitaliza" el Excel, sino que transforma el pro
 ### Preguntas de Validación
 ¿Cuánto tiempo se pierde actualmente en "retrabajo" por cambios de turnos? 
 
->Además de las 4 horas de planificación inicial, el retrabajo (gestionar cancelaciones, mover personal y volver a avisar por WhatsApp) suele consumir entre 2 y 3 horas adicionales diarias.
+>Según lo informado por el dueño, además de las 4 horas de planificación inicial, el retrabajo (gestionar cancelaciones, trasladar personal y volver a avisar por WhatsApp) suele consumir entre 2 y 3 horas adicionales diarias. Una vez mas, estos valores serán tomados como estimaciones ya que no se ha realizado una medición objetiva del tiempo empleado para dichas tareas.
 
 
 ¿Por qué un calendario compartido de Google o Excel online no es suficiente para este caso específico? 
