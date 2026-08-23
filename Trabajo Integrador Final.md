@@ -87,15 +87,14 @@ La elección se fundamenta en los siguientes pilares:
 - Como ya conocemos JavaScript, usarlo tanto en el frontend como en el backend (Node.js) unifica el lenguaje, acelerando la escritura y revisión de código. Esto evita el alto costo de aprendizaje que podría retrasar la solución.
 
 - Simplicidad vs. Complejidad: Se busca evitar la sobreingeniería un stack PERN (PostgreSQL, Express, React, NodeJS) es una solución estándar y madura que puede resolver el problema sin necesidad de recurrir a arquitecturas innecesariamente complejas como microservicios.
+  
+### Viabilidad y evolución
 
+El sistema será diseñado inicialmente para las necesidades de una empresa de mantenimiento de piscinas de pequeña escala, priorizando la correcta resolución del problema operativo identificado por sobre la capacidad de soportar grandes volúmenes de usuarios.
 
-### Escalabilidad
+PostgreSQL permitirá mantener la integridad de los datos relacionados con clientes, técnicos y servicios, mientras que Docker facilitará la reproducción del entorno y el despliegue de la aplicación.
 
-- Para una empresa de mantenimiento que crece en cantidad de empleados, Node.js permite manejar el incremento de conexiones simultáneas de técnicos reportando tareas.
-
-- Base de Datos: PostgreSQL es altamente robusto y puede manejar el historial creciente de servicios y clientes sin perder integridad, permitiendo además futuras implementaciones de análisis de datos
-
-- Crecimiento Horizontal: El uso de Docker facilita escalar la aplicación si la demanda aumenta repentinamente.
+En caso de que la solución sea adoptada y la cantidad de usuarios o servicios aumente significativamente, la arquitectura podrá evaluarse y adaptarse en futuras etapas. Sin embargo, el escalamiento a grandes volúmenes de usuarios no forma parte del objetivo del MVP.
 
 ### Limitaciones y riesgos
 
