@@ -28,7 +28,7 @@
 El dueño de una empresa de mantenimiento de piscinas que gestiona turnos de limpieza y visitas técnicas enfrenta problemas en la planificación y coordinación de los servicios. Actualmente, la planificacion se realiza manualmente mediante planillas de Excel y la comunicación con el personal de campo se lleva a cabo vía WhatsApp.
 Según una estimación del dueño durante la entrevista, informó que se destinan aproximadamente 4 horas diarias a tareas de planificacion y coordinacion administrativa. Asimismo, los cambios de ultimo momento y la necesidad de reorganizar los servicios generan retrabajo adicional. Estos valores serán tomados como estimaciones del entrevistado y no como mediciones objetivas del tiempo empleado, hasta que puedan ser validados mediante un registro sistematico de las tareas y los tiempos involucrados.
 
-Esta desconexión de la información puede provocar retrabajo por cambios de último minuto, dificultades para conocer la ubicacion y el estado del personal en momentos relevantes del servicio y demoras en la atención al cliente. Como hipotesis de solución, una plataforma centralizada podría permitir gestionar la agenda, automatizar la asignación de rutas y registrar el estado de los servicios en una única plataforma accesible desde cualquier dispositivo.
+Esta desconexión de la información puede generar retrabajo ante cambios de último momento, dificultades para conocer de manera actualizada el estado de los servicios y posibles demoras en la coordinación con los técnicos y la atención al cliente. Estas consecuencias deberán ser validadas mediante la observación y medición del proceso actual. Como hipotesis de solución, una plataforma centralizada podría permitir gestionar la agenda, automatizar la asignación de rutas y registrar el estado de los servicios en una única plataforma accesible desde cualquier dispositivo.
 
 ### Identificación de Actores y Necesidades
 
@@ -52,16 +52,15 @@ La solución propuesta no solo "digitalizaría" el Excel, sino que transformarí
 ### Preguntas de Validación
 ¿Cuánto tiempo se pierde actualmente en "retrabajo" por cambios de turnos? 
 
->Según lo informado por el dueño, además de las 4 horas de planificación inicial, el retrabajo (gestionar cancelaciones, trasladar personal y volver a avisar por WhatsApp) suele consumir entre 2 y 3 horas adicionales diarias. Una vez mas, estos valores serán tomados como estimaciones ya que no se ha realizado una medición objetiva del tiempo empleado para dichas tareas.
-
+> Según lo informado por el dueño durante la entrevista, además de las aproximadamente 4 horas diarias destinadas a la planificación inicial, el retrabajo asociado a cancelaciones, modificaciones, reorganización de servicios y comunicación de cambios mediante WhatsApp suele representar entre 2 y 3 horas adicionales diarias. Estos valores son estimaciones proporcionadas por el entrevistado y no fueron obtenidos mediante una medición sistemática. Por este motivo, serán utilizados como referencia inicial y deberán ser validados mediante un registro del tiempo empleado durante el Sprint 0.
 
 ¿Por qué un calendario compartido de Google o Excel online no es suficiente para este caso específico? 
 
->Porque digitalizar un proceso sin transformar el flujo no aportaría un valor agregado real. La solución propuesta destaca porque:
->- **Automatiza lo manual**: No solo es una lista, sino que gestiona la agenda de forma automática, algo que al utilizar Excel, requeriría mas tiempo y esfuerzo.
->- **Desarrollo a medida**: Una plataforma a medida puede detectar patrones, optimizar rutas por cercanía y emitir alertas automáticas de cambios, transformando la operación de la empresa de una manera que con el uso de herramientas genéricas podría costar y/o tardar más.
->- **Centraliza información desconectada**: A diferencia de hojas de cálculo aisladas, el software centraliza la gestión y el historial en una única plataforma accesible, eliminando la duplicación de datos y errores de coordinación que podrían surgir.
+No se parte de la premisa de que herramientas como Excel Online o Google Calendar sean insuficientes en términos generales. De hecho, podrían utilizarse para mejorar parcialmente el proceso actual. La diferencia que se busca evaluar es si una solución específica para la empresa puede integrar en un mismo flujo las operaciones que actualmente se realizan mediante distintas herramientas.
 
+En el proceso actual, la planificación, la comunicación de modificaciones y el seguimiento del estado de los servicios se realizan mediante herramientas separadas. Esto obliga al administrador a mantener y actualizar información en diferentes medios y a comunicar manualmente determinados cambios. Una solución específica podría centralizar estas operaciones y adaptar la interfaz a las necesidades de cada actor. Por ejemplo, el administrador podría gestionar la agenda y las asignaciones desde una única plataforma, mientras que el técnico podría consultar sus servicios y actualizar su estado desde el teléfono sin necesidad de modificar planillas o depender exclusivamente de mensajes.
+
+El valor agregado del desarrollo a medida no se considerará demostrado de antemano. Será una hipótesis a validar durante el proyecto, comparando el proceso actual con el funcionamiento del MVP mediante métricas de tiempo, cantidad de modificaciones comunicadas manualmente, errores de coordinación y adopción por parte de los usuarios.
 
 <br>
 
@@ -94,7 +93,10 @@ El sistema será diseñado inicialmente para las necesidades de una empresa de m
 
 PostgreSQL permitirá mantener la integridad de los datos relacionados con clientes, técnicos y servicios, mientras que Docker facilitará la reproducción del entorno y el despliegue de la aplicación.
 
-En caso de que la solución sea adoptada y la cantidad de usuarios o servicios aumente significativamente, la arquitectura podrá evaluarse y adaptarse en futuras etapas. Sin embargo, el escalamiento a grandes volúmenes de usuarios no forma parte del objetivo del MVP.
+El objetivo del MVP no es resolver escenarios de alta concurrencia ni grandes volúmenes de usuarios, sino comprobar que la solución resuelve adecuadamente el problema operativo de la empresa.
+
+Si posteriormente la cantidad de usuarios o servicios aumentara significativamente, sería necesario analizar métricas de rendimiento y evaluar estrategias específicas de escalamiento. Docker facilitará la reproducción y el despliegue de los componentes, pero su utilización por sí sola no garantiza el escalamiento horizontal del sistema.
+
 
 ### Limitaciones y riesgos
 
