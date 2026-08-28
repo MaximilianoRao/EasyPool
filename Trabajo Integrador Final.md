@@ -1,5 +1,4 @@
 
-
 <div align="center">
 <h1>Trabajo Integrador Final</h1>
 
@@ -33,19 +32,21 @@ Esta desconexión de la información puede generar retrabajo ante cambios de úl
 ### Identificación de Actores y Necesidades
 
 - Dueño/Administrador: Necesita optimizar los tiempos de planificación, reducir errores de asignación y tener una visión global de la operación diaria.
-- Personal de Campo (Técnicos): Necesitan visualizar su ruta actualizada en tiempo real, recibir notificaciones de cambios sin depender de mensajes manuales y poder reportar la finalización de tareas instantáneamente.
+- Personal de Campo (Técnicos): Necesitan visualizar su agenda y los servicios asignados de manera actualizada, recibir notificaciones sobre cambios sin depender de mensajes manuales y poder reportar la finalización de tareas desde el teléfono.
 - Clientes: Necesitan previsibilidad sobre cuándo será visitado su domicilio y recibir constancia del servicio realizado.
 
 ### Análisis del Flujo de Trabajo
 
 - Estado Actual: El dueño revisa pedidos → Carga manualmente en Excel → Diseña la ruta a criterio propio → Envía capturas/mensajes por WhatsApp → Si hay un cambio, debe contactar a cada técnico individualmente y actualizar el Excel.
-- Impacto de la Ineficiencia: La información, al estar dispersa en diferentes medios, podría limitar la capacidad de la empresa de aumentar la cantidad de servicios sin incrementar proporcionalmente el esfuerzo administrativo.
+
+- Impacto de la Ineficiencia: La información, al estar distribuida entre diferentes medios, podría limitar potencialmente la capacidad de la empresa para aumentar la cantidad de servicios sin incrementar proporcionalmente el esfuerzo administrativo. Esta relación deberá ser validada mediante la medición del tiempo destinado a tareas de planificación y coordinación antes y durante una eventual prueba piloto.
+
 
 
 ### Propuesta de Valor Agregado
 La solución propuesta no solo "digitalizaría" el Excel, sino que transformaría el proceso porque:
 - Optimización de recorridos: La optimización del orden de los servicios busca reducir los tiempos de traslado y el tiempo entre servicios, así como el consumo de combustible.
-- Permite reprogramación dinámica: Si un técnico se demora, el sistema puede recomendar reasignar el servicio a otro técnico y el administrador decide si aceptarlo. Con el sistema utilizado actualmente por la empresa, esta operación podría realizarse con herramientas como Excel o WhatsApp, pero requeriría mayor esfuerzo, tiempo y coordinacion.
+-Facilita la reprogramación: Ante una modificación o demora, el administrador podrá modificar manualmente la asignación o el horario de un servicio desde la plataforma. El cambio quedará reflejado en la agenda correspondiente, evitando tener que actualizar diferentes medios de comunicación de manera independiente.
 - Mejora la experiencia: El técnico trabaja con una herramienta profesional y el dueño recupera tiempo para tareas estratégicas
 
 
@@ -79,14 +80,18 @@ El valor agregado del desarrollo a medida no se considerará demostrado de antem
 - **Despliegue: Contenedores (Docker)** en una PaaS (Plataforma como Servicio). Docker asegura que la aplicación funcione igual en desarrollo y producción, mientras que una PaaS reduce la complejidad operativa inicial.
 
 ### Justificación de la elección
-La elección se fundamenta en los siguientes pilares:
 
-- Naturaleza del problema: El sistema requiere actualizar la información de los servicios de manera ágil, permitiendo la comunicación entre el personal administrativo y los técnicos. Node.js resulta adecuado para este tipo de aplicaciones web debido a su modelo de ejecución orientado en operaciones de entrada/salida y su capacidad de manejar multiples solicitudes eficazmente.
+La elección del stack se fundamenta tanto en las características del problema como en los conocimientos actuales del equipo.
 
-- Como ya conocemos JavaScript, usarlo tanto en el frontend como en el backend (Node.js) unifica el lenguaje, acelerando la escritura y revisión de código. Esto evita el alto costo de aprendizaje que podría retrasar la solución.
+-Naturaleza del problema: El sistema necesita realizar principalmente operaciones de consulta y modificación de datos, como crear servicios, consultar agendas, actualizar estados y registrar información. Node.js y Express resultan adecuados para desarrollar una API web para este tipo de operaciones.
 
-- Simplicidad vs. Complejidad: Se busca evitar la sobreingeniería un stack PERN (PostgreSQL, Express, React, NodeJS) es una solución estándar y madura que puede resolver el problema sin necesidad de recurrir a arquitecturas innecesariamente complejas como microservicios.
-  
+-Conocimientos previos del equipo: El equipo posee conocimientos previos de JavaScript, lo que representa una ventaja para trabajar tanto en frontend como en backend. Sin embargo, se reconoce que conocer JavaScript no implica dominar React, TypeScript, Node.js, Express, autenticación, Docker o despliegue. Por este motivo, la elección del stack deberá ser validada técnicamente durante los primeros sprints.
+
+-Simplicidad: Se busca utilizar una arquitectura monolítica basada en PostgreSQL, Express, React y Node.js (PERN), evitando incorporar microservicios u otras tecnologías que no sean necesarias para resolver el problema planteado.
+
+La elección definitiva se considerará viable si durante el Sprint 1 el equipo logra implementar correctamente una API básica, conexión con PostgreSQL, autenticación y ejecución del proyecto mediante Docker.
+
+
 ### Viabilidad y evolución
 
 El sistema será diseñado inicialmente para las necesidades de una empresa de mantenimiento de piscinas de pequeña escala, priorizando la correcta resolución del problema operativo identificado por sobre la capacidad de soportar grandes volúmenes de usuarios.
@@ -97,6 +102,19 @@ El objetivo del MVP no es resolver escenarios de alta concurrencia ni grandes vo
 
 Si posteriormente la cantidad de usuarios o servicios aumentara significativamente, sería necesario analizar métricas de rendimiento y evaluar estrategias específicas de escalamiento. Docker facilitará la reproducción y el despliegue de los componentes, pero su utilización por sí sola no garantiza el escalamiento horizontal del sistema.
 
+### Escala esperada del sistema
+
+Durante el Sprint 0 se relevará la escala actual de la empresa para establecer las necesidades reales del sistema.
+
+Se buscará conocer:
+
+* cantidad de técnicos;
+* cantidad promedio de servicios diarios;
+* cantidad de servicios en días de mayor demanda;
+* cantidad de usuarios administrativos;
+* cantidad aproximada de usuarios simultáneos.
+
+Estos datos serán utilizados para dimensionar el MVP y evitar diseñar la arquitectura para niveles de concurrencia o escalabilidad que no sean necesarios para el contexto real de la empresa.
 
 ### Limitaciones y riesgos
 
@@ -121,6 +139,22 @@ La planificación y coordinación de los servicios se realiza mediante Excel y W
 #### Hipótesis de producto
 
 Si centralizamos la agenda, asignamos servicios a técnicos y permitimos que estos actualicen su estado desde el celular, entonces se podría reducir significativamente el tiempo administrativo y los errores de coordinación sin aumentar la carga operativa.
+
+### Criterio para las métricas
+
+Los valores porcentuales establecidos en los objetivos y criterios de éxito son objetivos iniciales definidos por el equipo y no representan resultados observados actualmente en la empresa.
+
+Durante el Sprint 0 se buscará establecer un **baseline** del proceso actual mediante entrevistas, observación y registro de tiempos y eventos relevantes.
+
+Para cada métrica se definirá:
+
+- valor inicial o baseline;
+- método de medición;
+- período de medición;
+- valor obtenido durante la prueba;
+- criterio de éxito.
+
+Los valores objetivo podrán ajustarse después de obtener el baseline, evitando presentar como datos reales valores que actualmente constituyen hipótesis o decisiones del equipo.
 
 ### Objetivo general
 
@@ -170,12 +204,16 @@ Reducir la dependencia de WhatsApp para comunicar modificaciones operativas.
 
 **OE5 — Reducir tiempo administrativo**
 
-Reducir las aproximadamente 6–7 horas diarias actualmente utilizadas en planificación y retrabajo.
+Reducir el tiempo destinado actualmente a tareas de planificación y coordinación.
+
+Según lo informado por el propietario durante la entrevista, estas actividades representan aproximadamente 4 horas diarias de planificación y entre 2 y 3 horas adicionales de retrabajo ante modificaciones, cancelaciones y reorganización de servicios. Estos valores son estimaciones proporcionadas por el entrevistado y todavía no constituyen una medición objetiva.
 
 <u>Métrica:</u>
 
-- Objetivo inicial: ≤3 horas/día.
-- Objetivo posterior: ≤2 horas/día.
+- Durante el Sprint 0 se establecerá un baseline mediante el registro del tiempo dedicado a estas tareas durante un período definido.
+
+- A partir de ese baseline se evaluará como objetivo inicial una reducción de aproximadamente el 50 % del tiempo administrativo durante el piloto.
+
 
 **OE6 — Validar la viabilidad técnica**
 
@@ -215,7 +253,17 @@ Desde celular:
   - En servicio
   - Finalizado
 * Registrar observación.
-* Registrar evidencia básica del servicio, si es necesaria.
+* Registrar evidencia básica del servicio mediante el estado final, fecha y hora de finalización, técnico responsable, observación opcional y ubicación registrada al finalizar cuando los permisos correspondientes estén disponibles.
+
+**Cliente**
+
+El cliente será considerado un stakeholder del sistema, pero no será un usuario directo de la aplicación durante el MVP.
+
+El valor para el cliente estará dado principalmente por una mejor organización de los servicios y una mayor previsibilidad de la visita.
+
+La comunicación de horarios o modificaciones continuará siendo responsabilidad del administrador mediante los medios utilizados actualmente por la empresa.
+
+Un portal específico para clientes o un sistema de notificaciones destinado directamente a ellos queda fuera del alcance del MVP.
 
 **Sistema**
 - Base de datos centralizada.
@@ -226,12 +274,38 @@ Desde celular:
 
 **Rutas**
 
-- Optimización dinámica de ruta diaria y reasignación automática.
-El sistema propone un orden optimizado considerando ubicación y reasignar técnicos mas cercanos a la ubicación de los servicios. El administrador puede aceptarlo o modificarlo.
+En nuestro MVP, optimizar una ruta significa determinar un orden de visita para los servicios asignados a un técnico buscando reducir la distancia total aproximada entre los domicilios.
 
-**GPS**
-- Ubicacion de llegada.
-- Ubicacion de finalización.
+La primera versión se limitará a:
+
+- un técnico;
+- un conjunto de servicios previamente asignados;
+- una ubicación inicial;
+- múltiples destinos;
+- coordenadas de latitud y longitud;
+- cálculo de distancias entre los puntos;
+- determinación de un orden de visita basado en esas distancias.
+
+No se resolverán inicialmente ventanas horarias complejas, distribución automática de servicios entre múltiples técnicos, tráfico en tiempo real ni reoptimización automática ante modificaciones.
+
+Para reducir la complejidad y las dependencias externas, se evaluará trabajar inicialmente con un conjunto acotado de localidades o puntos geográficos previamente definidos mediante coordenadas de latitud y longitud. A partir de estos datos, el equipo podrá implementar y evaluar un algoritmo básico de ordenamiento de recorridos.
+
+La solución será considerada una optimización aproximada y no se afirmará que encuentra la ruta matemáticamente óptima.
+
+En una etapa posterior podrá evaluarse la utilización de servicios externos de mapas o ruteo si se demuestra que son necesarios.
+
+**Ubicación**
+
+La funcionalidad de ubicación del MVP estará limitada al registro de la posición del técnico en momentos específicos del servicio.
+
+- Al marcar **"En servicio"**, el sistema podrá registrar la ubicación aproximada del técnico.
+- Al marcar **"Finalizado"**, podrá registrarse nuevamente su ubicación.
+- No se realizará seguimiento continuo de la ubicación del técnico.
+
+El registro de coordenadas se utilizará como evidencia temporal y geográfica del servicio realizado.
+
+El acceso a esta información estará limitado a los usuarios autorizados. La implementación deberá contemplar los permisos necesarios del dispositivo e informar al técnico cuándo se registra su ubicación.
+
 
 **No incluye**
 - Reasignación automática
@@ -339,11 +413,11 @@ Semana 8 y 9
 
 Implementar:
 
-- ordenamiento de servicios;
-- integración con mapas;
-- cálculo básico de ruta;
-- notificación de cambios;
-- actualización en tiempo real.
+- carga y utilización de coordenadas de los puntos;
+- cálculo de distancias;
+- ordenamiento básico de los servicios;
+- notificación de cambios dentro de la aplicación;
+- actualización de la agenda del técnico.
 
 Entregable
 
@@ -383,20 +457,22 @@ MVP utilizado en condiciones reales.
 
 ### Riesgos iniciales
 
+**Probabilidad:** Alta
+**Impacto:** Alto
 
-**Riesgo 1 — Curva de aprendizaje React/Node**
-
-**Probabilidad**: Alta <br>
-**Impacto**: Alto
+El equipo posee conocimientos previos de JavaScript, pero no necesariamente el mismo nivel de experiencia en React, TypeScript, Node.js, Express, autenticación, Docker y despliegue. La incorporación simultánea de estas tecnologías podría afectar los tiempos de desarrollo.
 
 <u>Mitigación</u>
 
-Reducir stack y utilizar:
-- React;
-- TypeScript;
-- Express;
-- PostgreSQL;
-- una librería UI madura.
+Durante el Sprint 0 y el inicio del Sprint 1 se realizará una prueba técnica utilizando las tecnologías principales. El objetivo será comprobar que el equipo puede:
+
+- levantar el frontend y backend;
+- conectar el backend con PostgreSQL;
+- implementar una operación básica de la API;
+- implementar autenticación;
+- ejecutar el proyecto mediante Docker.
+
+Si alguna tecnología presenta una dificultad significativamente mayor a la prevista, el equipo evaluará simplificarla o reemplazarla antes de avanzar con funcionalidades más complejas.
 
 **Riesgo 2 — Sobreingeniería**
 
@@ -471,33 +547,42 @@ El técnico no debería tener que completar formularios enormes.
 
 ### Criterios de éxito del MVP
 
-#### Operativos
-- ≥90% de los servicios del piloto gestionados desde el sistema.
-- ≥90% de los servicios tienen estado actualizado.
-- ≥80% de los técnicos utilizan el sistema sin asistencia permanente.
+Los siguientes criterios constituyen objetivos iniciales del equipo y serán revisados después de establecer el baseline y confirmar la cantidad de participantes disponibles para el piloto.
 
-#### Tiempo
-- Reducir ≥50% las horas diarias destinadas a planificación y coordinación.
+### Operativos
 
-#### Errores
-- ≥50% menos incidencias de coordinación respecto al baseline.
+- La mayoría de los servicios incluidos en el piloto deberán ser gestionados mediante el sistema.
+- Los servicios deberán contar con un estado actualizado al finalizar la jornada.
+- Los técnicos deberán poder consultar y actualizar sus servicios sin asistencia permanente del administrador.
 
-#### Usabilidad
-- ≥80% de los usuarios piloto consideran que el sistema es más fácil que el proceso actual
+### Tiempo
 
-#### Criterio de éxito más importante
+- Buscar una reducción de aproximadamente el 50 % del tiempo destinado a planificación y coordinación respecto del baseline establecido durante el Sprint 0.
 
-> El producto funciona
+### Errores y coordinación
 
-Lo que implica que:
+- Reducir respecto del baseline la cantidad de incidencias producidas por falta de actualización o comunicación de cambios.
+- Registrar las modificaciones realizadas sobre los servicios para poder comparar el proceso anterior con el proceso utilizando el MVP.
+
+### Usabilidad
+
+- Los técnicos participantes deberán poder realizar las operaciones principales —consultar un servicio, cambiar su estado y finalizarlo— sin asistencia permanente.
+- Al finalizar el piloto se realizará una encuesta o entrevista breve para identificar dificultades, mejoras necesarias y percepción de utilidad.
+
+### Criterio de éxito principal
+
+El MVP será considerado exitoso si existe evidencia de que la solución puede mejorar el proceso actual sin aumentar significativamente la carga de trabajo de los técnicos.
+
+En particular, se buscará comprobar:
 
 ```
-El dueño ahorra tiempo
-↓
-El técnico adopta el sistema
-↓
-Hay menos errores
-↓
-La empresa puede atender más servicios
+El administrador reduce el tiempo de coordinación
+                    ↓
+El técnico puede utilizar el sistema fácilmente
+                    ↓
+Los cambios quedan centralizados
+                    ↓
+Los estados de los servicios se mantienen actualizados
+                    ↓
+La solución presenta una mejora respecto del proceso actual
 ```
-
