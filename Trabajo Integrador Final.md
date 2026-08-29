@@ -25,7 +25,7 @@
 ## Definición Refinada del Problema
 
 El dueño de una empresa de mantenimiento de piscinas que gestiona turnos de limpieza y visitas técnicas enfrenta problemas en la planificación y coordinación de los servicios. Actualmente, la planificacion se realiza manualmente mediante planillas de Excel y la comunicación con el personal de campo se lleva a cabo vía WhatsApp.
-Según una estimación del dueño durante la entrevista, informó que se destinan aproximadamente 4 horas diarias a tareas de planificacion y coordinacion administrativa. Asimismo, los cambios de ultimo momento y la necesidad de reorganizar los servicios generan retrabajo adicional. Estos valores serán tomados como estimaciones del entrevistado y no como mediciones objetivas del tiempo empleado, hasta que puedan ser validados mediante un registro sistematico de las tareas y los tiempos involucrados.
+Según una estimación del dueño durante la entrevista, informó que se destinan aproximadamente 4 horas diarias a tareas de planificacion y coordinacion administrativa. Asimismo, los cambios de ultimo momento y la necesidad de reorganizar los servicios generan retrabajo adicional. El equipo asume estos valores como hipotesis de trabajo y se tratarán como una hipótesis a validar (o descartar) durante el proyecto, no como un dato confirmado del problema. 
 
 Esta desconexión de la información puede generar retrabajo ante cambios de último momento, dificultades para conocer de manera actualizada el estado de los servicios y posibles demoras en la coordinación con los técnicos y la atención al cliente. Estas consecuencias deberán ser validadas mediante la observación y medición del proceso actual. Como hipotesis de solución, una plataforma centralizada podría permitir gestionar la agenda, automatizar la asignación de rutas y registrar el estado de los servicios en una única plataforma accesible desde cualquier dispositivo.
 
@@ -53,7 +53,7 @@ La solución propuesta no solo "digitalizaría" el Excel, sino que transformarí
 ### Preguntas de Validación
 ¿Cuánto tiempo se pierde actualmente en "retrabajo" por cambios de turnos? 
 
-> Según lo informado por el dueño durante la entrevista, además de las aproximadamente 4 horas diarias destinadas a la planificación inicial, el retrabajo asociado a cancelaciones, modificaciones, reorganización de servicios y comunicación de cambios mediante WhatsApp suele representar entre 2 y 3 horas adicionales diarias. Estos valores son estimaciones proporcionadas por el entrevistado y no fueron obtenidos mediante una medición sistemática. Por este motivo, serán utilizados como referencia inicial y deberán ser validados mediante un registro del tiempo empleado durante el Sprint 0.
+> Según lo informado por el dueño durante la entrevista, además de las aproximadamente 4 horas diarias destinadas a la planificación inicial, el retrabajo asociado a cancelaciones, modificaciones, reorganización de servicios y comunicación de cambios mediante WhatsApp suele representar entre 2 y 3 horas adicionales diarias. Estos valores son estimaciones proporcionadas por el entrevistado y no fueron obtenidos mediante una medición sistemática. Al no contar con acceso directo a la empresa, este valor se mantiene como hipótesis de partida y no podrá contrastarse con un baseline real durante este proyecto; se documentará explícitamente esta limitación.
 
 ¿Por qué un calendario compartido de Google o Excel online no es suficiente para este caso específico? 
 
@@ -78,6 +78,15 @@ El valor agregado del desarrollo a medida no se considerará demostrado de antem
 - **Base de Datos: PostgreSQL (Relacional)** Al manejar clientes, técnicos, turnos y rutas, los datos tienen una estructura clara y relaciones importantes que requieren integridad transaccional.
 
 - **Despliegue: Contenedores (Docker)** en una PaaS (Plataforma como Servicio). Docker asegura que la aplicación funcione igual en desarrollo y producción, mientras que una PaaS reduce la complejidad operativa inicial.
+
+**Experiencia real de cada integrante con las tecnologías propuestas:**
+
+| Tecnología | Experiencia previa |
+|---|---|
+| TypeScript | Los 3 integrantes |
+| React | Ninguno |
+| Node.js / Express | Ninguno |
+| Docker | 1 de 3 integrantes |
 
 ### Justificación de la elección
 
@@ -104,9 +113,9 @@ Si posteriormente la cantidad de usuarios o servicios aumentara significativamen
 
 ### Escala esperada del sistema
 
-Durante el Sprint 0 se relevará la escala actual de la empresa para establecer las necesidades reales del sistema.
+Dado que el equipo no cuenta con acceso a la empresa real, se asume como escenario de trabajo una pyme con aproximadamente 5 técnicos y 20 servicios diarios. Este valor es un supuesto del equipo, no un dato relevado, y se usa únicamente para dimensionar el MVP y descartar la necesidad de diseñar para escenarios de alta concurrencia que no corresponden a este contexto.
 
-Se buscará conocer:
+Si en el futuro se accediera a datos reales de una empresa del rubro, correspondería relevar:
 
 * cantidad de técnicos;
 * cantidad promedio de servicios diarios;
@@ -114,7 +123,7 @@ Se buscará conocer:
 * cantidad de usuarios administrativos;
 * cantidad aproximada de usuarios simultáneos.
 
-Estos datos serán utilizados para dimensionar el MVP y evitar diseñar la arquitectura para niveles de concurrencia o escalabilidad que no sean necesarios para el contexto real de la empresa.
+y ajustar el dimensionamiento del MVP en función de esos datos reales, en lugar del supuesto actual.
 
 ### Limitaciones y riesgos
 
@@ -142,19 +151,17 @@ Si centralizamos la agenda, asignamos servicios a técnicos y permitimos que est
 
 ### Criterio para las métricas
 
-Los valores porcentuales establecidos en los objetivos y criterios de éxito son objetivos iniciales definidos por el equipo y no representan resultados observados actualmente en la empresa.
+Los valores porcentuales establecidos en los objetivos y criterios de éxito son objetivos iniciales definidos por el equipo, a partir de la observación informal de un negocio del rubro, y no representan resultados medidos ni relevados de la empresa real.
 
-Durante el Sprint 0 se buscará establecer un **baseline** del proceso actual mediante entrevistas, observación y registro de tiempos y eventos relevantes.
+Dado que el equipo no cuenta con acceso a la empresa real, no se realizará un relevamiento de baseline mediante entrevistas ni observación directa del proceso actual. En su lugar, se documentarán explícitamente estos supuestos de partida, y para cada métrica se definirá cómo se mediría dentro del entorno simulado (ver Sprint 5), en lugar de contra un baseline real.
 
 Para cada métrica se definirá:
 
-- valor inicial o baseline;
-- método de medición;
-- período de medición;
-- valor obtenido durante la prueba;
-- criterio de éxito.
+- valor asumido de partida;
+- método de medición dentro del entorno simulado;
+- criterio de éxito funcional (verificable en el piloto simulado).
 
-Los valores objetivo podrán ajustarse después de obtener el baseline, evitando presentar como datos reales valores que actualmente constituyen hipótesis o decisiones del equipo.
+Si en el futuro se accediera a la empresa real, correspondería relevar un baseline mediante entrevistas y observación directa del proceso actual, y ajustar los valores objetivo en función de esos datos.
 
 ### Objetivo general
 
@@ -206,13 +213,13 @@ Reducir la dependencia de WhatsApp para comunicar modificaciones operativas.
 
 Reducir el tiempo destinado actualmente a tareas de planificación y coordinación.
 
-Según lo informado por el propietario durante la entrevista, estas actividades representan aproximadamente 4 horas diarias de planificación y entre 2 y 3 horas adicionales de retrabajo ante modificaciones, cancelaciones y reorganización de servicios. Estos valores son estimaciones proporcionadas por el entrevistado y todavía no constituyen una medición objetiva.
+Según lo informado por el propietario durante la entrevista, estas actividades representan aproximadamente 4 horas diarias de planificación y entre 2 y 3 horas adicionales de retrabajo ante modificaciones, cancelaciones y reorganización de servicios. Estos valores son estimaciones proporcionadas por el entrevistado, al no contar con acceso directo a la empresa, este valor se mantiene como hipótesis de partida y no podrá contrastarse con un baseline real durante este proyecto; se documentará explícitamente esta limitación.
 
 <u>Métrica:</u>
 
-- Durante el Sprint 0 se establecerá un baseline mediante el registro del tiempo dedicado a estas tareas durante un período definido.
+- Se documentará el supuesto de partida (4–7 hs/día) como hipótesis del equipo, sin baseline real.
 
-- A partir de ese baseline se evaluará como objetivo inicial una reducción de aproximadamente el 50 % del tiempo administrativo durante el piloto.
+- El objetivo de reducción del 50% se mantiene como meta de diseño del sistema, verificable únicamente en el piloto simulado (ver Sprint 5) y no como resultado medido en un contexto real.
 
 
 **OE6 — Validar la viabilidad técnica**
@@ -439,23 +446,25 @@ Administrador lo ve
 
 Semana 10 y 11
 
-No dedicaría esta semana a agregar funcionalidades.
+En estas semanas no se agregan funcionalidades.
 
-La dedicaría a:
+Se realizará:
 
-- pruebas;
-- corrección de errores;
-- capacitación;
-- medición de tiempos;
-- recopilación de feedback.
+- carga de datos y usuarios simulados (5 técnicos, 20 servicios/día);
+- ejecución del flujo completo end-to-end;
+- pruebas y corrección de errores;
+- medición de tiempos de las operaciones clave dentro del entorno simulado;
+- revisión interna del equipo (walkthrough) a modo de control de calidad, en reemplazo del feedback de usuarios reales.
 
 Entregable principal
 
-MVP utilizado en condiciones reales.
+Demo funcional del sistema ejecutada con datos y usuarios simulados, cubriendo el flujo completo (alta de servicio → asignación → notificación → cambio de estado → finalización), con un escenario de carga equivalente a 5 técnicos y 20 servicios/día.
 
 ---
 
 ### Riesgos iniciales
+
+**Riesgo 1 — Curva de aprendizaje React/Node**
 
 **Probabilidad:** Alta
 **Impacto:** Alto
@@ -547,42 +556,33 @@ El técnico no debería tener que completar formularios enormes.
 
 ### Criterios de éxito del MVP
 
-Los siguientes criterios constituyen objetivos iniciales del equipo y serán revisados después de establecer el baseline y confirmar la cantidad de participantes disponibles para el piloto.
+Dado que el proyecto finaliza con un piloto simulado y no con un piloto de campo real, los criterios de éxito se dividen en dos grupos: los que **sí pueden verificarse** con datos simulados, y los que **quedan como hipótesis pendientes de un piloto real futuro**.
 
-### Operativos
+### Criterios funcionales (verificables en el piloto simulado)
 
-- La mayoría de los servicios incluidos en el piloto deberán ser gestionados mediante el sistema.
-- Los servicios deberán contar con un estado actualizado al finalizar la jornada.
-- Los técnicos deberán poder consultar y actualizar sus servicios sin asistencia permanente del administrador.
+- El 100% de los servicios cargados en el escenario simulado (20 servicios/día, 5 técnicos) quedan registrados y trazables en el sistema, sin necesidad de una agenda paralela en Excel.
+- El técnico puede completar el ciclo completo de un servicio (consultar → cambiar estado → finalizar) en el entorno de prueba, sin asistencia del administrador y sin formularios extensos.
+- Los cambios cargados por el administrador se reflejan correctamente en la agenda del técnico dentro del sistema, sin necesidad de comunicación manual adicional.
+- El sistema soporta el escenario asumido (5 técnicos, 20 servicios/día) sin errores funcionales ni pérdida de información.
 
-### Tiempo
+### Criterios de impacto (hipótesis, requieren validación con una empresa real — fuera del alcance de este entregable)
 
-- Buscar una reducción de aproximadamente el 50 % del tiempo destinado a planificación y coordinación respecto del baseline establecido durante el Sprint 0.
+- Reducción del tiempo administrativo diario (estimado hoy por el equipo en 4–7 hs, sin baseline medido).
+- Adopción real y sostenida por parte de técnicos reales (no simulados).
+- Reducción de errores de coordinación en un contexto operativo real.
+- Percepción de utilidad por parte del dueño y los técnicos reales.
 
-### Errores y coordinación
-
-- Reducir respecto del baseline la cantidad de incidencias producidas por falta de actualización o comunicación de cambios.
-- Registrar las modificaciones realizadas sobre los servicios para poder comparar el proceso anterior con el proceso utilizando el MVP.
-
-### Usabilidad
-
-- Los técnicos participantes deberán poder realizar las operaciones principales —consultar un servicio, cambiar su estado y finalizarlo— sin asistencia permanente.
-- Al finalizar el piloto se realizará una encuesta o entrevista breve para identificar dificultades, mejoras necesarias y percepción de utilidad.
 
 ### Criterio de éxito principal
 
-El MVP será considerado exitoso si existe evidencia de que la solución puede mejorar el proceso actual sin aumentar significativamente la carga de trabajo de los técnicos.
-
-En particular, se buscará comprobar:
+El MVP será considerado exitoso **a nivel de este entregable** si el piloto simulado demuestra que el flujo completo funciona de punta a punta y que el sistema resuelve, al menos funcionalmente, el problema modelado. La validación de impacto real (ahorro de tiempo, adopción, reducción de errores) queda explícitamente pendiente para una etapa posterior con acceso a una empresa real.
 
 ```
-El administrador reduce el tiempo de coordinación
+El sistema soporta el flujo completo con datos simulados
                     ↓
-El técnico puede utilizar el sistema fácilmente
+El técnico puede operar el sistema sin fricción
                     ↓
-Los cambios quedan centralizados
+Los cambios quedan centralizados y trazables
                     ↓
-Los estados de los servicios se mantienen actualizados
-                    ↓
-La solución presenta una mejora respecto del proceso actual
+(Pendiente, requiere piloto real) → ahorro de tiempo, adopción y reducción de errores en contexto real
 ```
