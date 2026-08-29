@@ -24,8 +24,9 @@
 
 ## Definición Refinada del Problema
 
-El dueño de una empresa de mantenimiento de piscinas que gestiona turnos de limpieza y visitas técnicas enfrenta problemas en la planificación y coordinación de los servicios. Actualmente, la planificacion se realiza manualmente mediante planillas de Excel y la comunicación con el personal de campo se lleva a cabo vía WhatsApp.
-Según una estimación del dueño durante la entrevista, informó que se destinan aproximadamente 4 horas diarias a tareas de planificacion y coordinacion administrativa. Asimismo, los cambios de ultimo momento y la necesidad de reorganizar los servicios generan retrabajo adicional. El equipo asume estos valores como hipotesis de trabajo y se tratarán como una hipótesis a validar (o descartar) durante el proyecto, no como un dato confirmado del problema. 
+El caso está inspirado en un negocio real de mantenimiento de piscinas observado informalmente por el equipo, sin que se haya realizado una entrevista formal con el dueño. La planificación de turnos se realiza mediante planillas de Excel y la comunicación con el personal de campo mediante WhatsApp.
+
+A partir de esa observación informal, el equipo asume como hipótesis de trabajo que la planificación diaria insume aproximadamente 4 horas, y que el retrabajo generado por cambios de último momento agrega entre 2 y 3 horas adicionales. Estos valores no provienen de una medición ni de una entrevista con el propietario: son una estimación del equipo a partir de lo observado, y se tratarán como una hipótesis a validar (o descartar) durante el proyecto, no como un dato confirmado del problema.
 
 Esta desconexión de la información puede generar retrabajo ante cambios de último momento, dificultades para conocer de manera actualizada el estado de los servicios y posibles demoras en la coordinación con los técnicos y la atención al cliente. Estas consecuencias deberán ser validadas mediante la observación y medición del proceso actual. Como hipotesis de solución, una plataforma centralizada podría permitir gestionar la agenda, automatizar la asignación de rutas y registrar el estado de los servicios en una única plataforma accesible desde cualquier dispositivo.
 
@@ -53,14 +54,12 @@ La solución propuesta no solo "digitalizaría" el Excel, sino que transformarí
 ### Preguntas de Validación
 ¿Cuánto tiempo se pierde actualmente en "retrabajo" por cambios de turnos? 
 
-> Según lo informado por el dueño durante la entrevista, además de las aproximadamente 4 horas diarias destinadas a la planificación inicial, el retrabajo asociado a cancelaciones, modificaciones, reorganización de servicios y comunicación de cambios mediante WhatsApp suele representar entre 2 y 3 horas adicionales diarias. Estos valores son estimaciones proporcionadas por el entrevistado y no fueron obtenidos mediante una medición sistemática. Al no contar con acceso directo a la empresa, este valor se mantiene como hipótesis de partida y no podrá contrastarse con un baseline real durante este proyecto; se documentará explícitamente esta limitación.
+> Esta cifra es una estimación del equipo, construida a partir de la observación informal del negocio de referencia — no surge de una entrevista ni de una medición sistemática. Se estima en 4 horas diarias de planificación inicial, más entre 2 y 3 horas adicionales de retrabajo por cancelaciones, reorganización de servicios y comunicación de cambios vía WhatsApp. Al no contar con acceso directo a la empresa, este valor se mantiene como hipótesis de partida y no podrá contrastarse con un baseline real durante este proyecto; se documentará explícitamente esta limitación.
 
 ¿Por qué un calendario compartido de Google o Excel online no es suficiente para este caso específico? 
 
-No se parte de la premisa de que herramientas como Excel Online o Google Calendar sean insuficientes en términos generales. De hecho, podrían utilizarse para mejorar parcialmente el proceso actual. La diferencia que se busca evaluar es si una solución específica para la empresa puede integrar en un mismo flujo las operaciones que actualmente se realizan mediante distintas herramientas.
-
+> No se parte de la premisa de que herramientas como Excel Online o Google Calendar sean insuficientes en términos generales. De hecho, podrían utilizarse para mejorar parcialmente el proceso actual. La diferencia que se busca evaluar es si una solución específica para la empresa puede integrar en un mismo flujo las operaciones que actualmente se realizan mediante distintas herramientas.
 En el proceso actual, la planificación, la comunicación de modificaciones y el seguimiento del estado de los servicios se realizan mediante herramientas separadas. Esto obliga al administrador a mantener y actualizar información en diferentes medios y a comunicar manualmente determinados cambios. Una solución específica podría centralizar estas operaciones y adaptar la interfaz a las necesidades de cada actor. Por ejemplo, el administrador podría gestionar la agenda y las asignaciones desde una única plataforma, mientras que el técnico podría consultar sus servicios y actualizar su estado desde el teléfono sin necesidad de modificar planillas o depender exclusivamente de mensajes.
-
 El valor agregado del desarrollo a medida no se considerará demostrado de antemano. Será una hipótesis a validar durante el proyecto, comparando el proceso actual con el funcionamiento del MVP mediante métricas de tiempo, cantidad de modificaciones comunicadas manualmente, errores de coordinación y adopción por parte de los usuarios.
 
 <br>
@@ -143,7 +142,7 @@ y ajustar el dimensionamiento del MVP en función de esos datos reales, en lugar
 ## Refinamiento de propuesta y análisis de viabilidad asistida por IA
 
 ### Problema principal
-La planificación y coordinación de los servicios se realiza mediante Excel y WhatsApp, generando aproximadamente 6–7 horas diarias de trabajo administrativo y retrabajo, además de errores y falta de visibilidad sobre el estado de los servicios.
+La planificación y coordinación de los servicios se realiza mediante Excel y WhatsApp, generando aproximadamente 6–7 horas diarias de trabajo administrativo y retrabajo (estimado por el equipo, ver más abajo), además de errores y falta de visibilidad sobre el estado de los servicios.
 
 #### Hipótesis de producto
 
@@ -175,7 +174,7 @@ Permitir que el administrador cree, modifique, cancele y consulte servicios desd
 
 <u>Métrica:</u>
 
-- 100% de los servicios del piloto registrados en el sistema.
+- 100% de los servicios del piloto simulado registrados en el sistema.
 - Eliminar la necesidad de mantener una agenda paralela en Excel durante la prueba.
 
 **OE2 — Digitalizar la asignación**
@@ -211,9 +210,7 @@ Reducir la dependencia de WhatsApp para comunicar modificaciones operativas.
 
 **OE5 — Reducir tiempo administrativo**
 
-Reducir el tiempo destinado actualmente a tareas de planificación y coordinación.
-
-Según lo informado por el propietario durante la entrevista, estas actividades representan aproximadamente 4 horas diarias de planificación y entre 2 y 3 horas adicionales de retrabajo ante modificaciones, cancelaciones y reorganización de servicios. Estos valores son estimaciones proporcionadas por el entrevistado, al no contar con acceso directo a la empresa, este valor se mantiene como hipótesis de partida y no podrá contrastarse con un baseline real durante este proyecto; se documentará explícitamente esta limitación.
+Dado que el equipo no tiene acceso a la empresa real, el punto de partida (4 hs de planificación + 2–3 hs de retrabajo) es una estimación propia, basada en la observación informal de un negocio del rubro, y no en una entrevista ni en un registro real. Ante la imposibilidad de relevar un baseline con la empresa real, el "Sprint 0" de este proyecto se limitará a definir formalmente este supuesto de partida, dejando aclarado que un proyecto real con acceso a la empresa debería reemplazarlo por un baseline medido.
 
 <u>Métrica:</u>
 
