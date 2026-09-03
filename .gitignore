@@ -1,0 +1,13 @@
+# Archivos y carpetas de configuración de IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Ignorar carpetas de dependencias
+node_modules/
+
+# Ignorar archivos de configuración local o secretos
+config.env
+*.log
