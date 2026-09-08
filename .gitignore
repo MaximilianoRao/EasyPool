@@ -11,3 +11,4 @@ node_modules/
 # Ignorar archivos de configuración local o secretos
 config.env
 *.log
+.env
