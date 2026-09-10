@@ -1,12 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { login, obtenerClientes } from './api';
+import AdminPanel from './AdminPanel';
 
 function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [clientes, setClientes] = useState<any[]>([]);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (token) {
+    cargarClientes(token);
+    }
+  }, [token]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -15,12 +22,27 @@ function App() {
     try {
       const tokenObtenido = await login(email, password);
       setToken(tokenObtenido);
-
-      const listaClientes = await obtenerClientes(tokenObtenido);
-      setClientes(listaClientes);
+      localStorage.setItem('token', tokenObtenido);
+      await cargarClientes(tokenObtenido);
     } catch (err) {
       setError('No se pudo iniciar sesión. Revisá el email y la contraseña.');
     }
+  }
+
+  async function cargarClientes(tokenActual: string) {
+  try {
+    const listaClientes = await obtenerClientes(tokenActual);
+    setClientes(listaClientes);
+  } catch (err) {
+    console.error('Error al cargar clientes:', err);
+  }
+}
+
+  function handleLogout() {
+    setToken(null);
+    localStorage.removeItem('token');
+    setEmail('');
+    setPassword('');
   }
 
   if (token) {
@@ -28,6 +50,8 @@ function App() {
       <div>
         <h1>EasyPool</h1>
         <p>Sesión iniciada correctamente.</p>
+        <button onClick={handleLogout}>Cerrar sesión</button>
+        <AdminPanel token={token} onClienteCreado={() => cargarClientes(token)} />
         <h2>Clientes</h2>
         {clientes.length === 0 ? (
           <p>No hay clientes cargados todavía.</p>

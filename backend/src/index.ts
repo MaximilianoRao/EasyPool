@@ -6,7 +6,7 @@ import { verificarToken, verificarRol, RequestConUsuario } from './middleware/au
 import cors from 'cors';
 
 const app = express();
-const PORT = 3000;
+const PORT = 3001;
 
 app.use(cors());
 app.use(express.json()); // permite leer el body JSON de los pedidos POST
