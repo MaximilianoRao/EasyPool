@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { pool } from './db';
-import { verificarToken, RequestConUsuario } from './middleware/auth';
+import { verificarToken, verificarRol, RequestConUsuario } from './middleware/auth';
 import cors from 'cors';
 
 const app = express();
@@ -46,7 +46,7 @@ app.post('/login', async (req: Request, res: Response) => {
   }
 });
 
-app.get('/clientes', verificarToken, async (req: RequestConUsuario, res: Response) => {
+app.get('/clientes', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
   try {
     const resultado = await pool.query('SELECT * FROM cliente');
     res.json(resultado.rows);
@@ -76,7 +76,7 @@ app.post('/clientes', verificarToken, async (req: RequestConUsuario, res: Respon
     return;
   }
   try {
-    const resultado = await pool.query('INSERT INTO CLIENTE(nombre, telefono) VALUES ($1, $2) RETURNING *', [nombre, telefono]);
+    const resultado = await pool.query('INSERT INTO cliente(nombre, telefono) VALUES ($1, $2) RETURNING *', [nombre, telefono]);
     res.status(201).json(resultado.rows[0]);
   } catch (error) {
     console.error('Error al crear cliente', error);
@@ -84,7 +84,7 @@ app.post('/clientes', verificarToken, async (req: RequestConUsuario, res: Respon
   }
 });
 
-app.post('/clientes/:id/ubicaciones', verificarToken, async (req: RequestConUsuario, res: Response) => {
+app.post('/clientes/:id/ubicaciones', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
 
   const { id } = req.params;
   const { direccion, latitud, longitud } = req.body;
@@ -124,7 +124,7 @@ app.get('/clientes/:id/ubicaciones', verificarToken, async (req: RequestConUsuar
 
 });
 
-app.post('/servicios', verificarToken, async (req: RequestConUsuario, res: Response) => {
+app.post('/servicios', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
 
   const { ubicacion_id, fecha_hora } = req.body;
 
@@ -144,7 +144,7 @@ app.post('/servicios', verificarToken, async (req: RequestConUsuario, res: Respo
 
 });
 
-app.patch('/servicios/:id/asignar', verificarToken, async (req: RequestConUsuario, res: Response) => {
+app.patch('/servicios/:id/asignar', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
   const { id } = req.params;
   const { tecnico_id } = req.body;
 
@@ -154,6 +154,18 @@ app.patch('/servicios/:id/asignar', verificarToken, async (req: RequestConUsuari
   }
 
   try {
+    const usuarioResultado = await pool.query('SELECT rol FROM usuario WHERE id = $1', [tecnico_id]);
+    const usuario = usuarioResultado.rows[0];
+
+    if (!usuario) {
+      res.status(404).json({ error: 'El técnico indicado no existe' });
+      return;
+    }
+
+    if (usuario.rol !== 'tecnico') {
+      res.status(400).json({ error: 'El usuario indicado no tiene rol de técnico' });
+      return;
+    }
     const resultado = await pool.query(`UPDATE servicio SET tecnico_id = $1 WHERE id = $2 RETURNING *`, [tecnico_id, id]);
     res.json(resultado.rows[0]);
 
@@ -163,7 +175,7 @@ app.patch('/servicios/:id/asignar', verificarToken, async (req: RequestConUsuari
   }
 });
 
-app.get('/mis-servicios', verificarToken, async (req: RequestConUsuario, res: Response) => {
+app.get('/mis-servicios', verificarToken, verificarRol('tecnico'), async (req: RequestConUsuario, res: Response) => {
 
   const tecnicoId = req.usuario?.id;
 
@@ -182,14 +194,13 @@ app.get('/mis-servicios', verificarToken, async (req: RequestConUsuario, res: Re
 
 });
 
-app.patch('/servicios/:id/estado', verificarToken, async (req: RequestConUsuario, res: Response) => {
+app.patch('/servicios/:id/estado', verificarToken, verificarRol('tecnico'), async (req: RequestConUsuario, res: Response) => {
   const { id } = req.params;
-  const { estado } = req.body;
+  const { estado, version } = req.body;
   const tecnicoId = req.usuario?.id;
 
   try {
     const servicioResultado = await pool.query('SELECT * FROM servicio WHERE id = $1 AND tecnico_id = $2', [id, tecnicoId]);
-
     const servicio = servicioResultado.rows[0];
 
     if (!servicio) {
@@ -197,27 +208,34 @@ app.patch('/servicios/:id/estado', verificarToken, async (req: RequestConUsuario
       return;
     }
 
-    const transicionesValidas: Record<string, string[]> = {
-      pendiente: ['en_camino'],
-      en_camino: ['en_servicio'],
-      en_servicio: ['finalizado']
-    };
-
-    const permitidos = transicionesValidas[servicio.estado] || [];
-
-    if (!permitidos.includes(estado)) {
-      res.status(400).json({
-        error: `No se puede pasar de ${servicio.estado} a ${estado}`
-      });
+    if (servicio.version !== version) {
+      res.status(409).json({ error: 'El servicio fue modificado por otra persona, actualizá la información e intentá de nuevo' });
       return;
     }
 
-    const resultado = await pool.query(`UPDATE servicio SET estado = $1, version = version + 1 WHERE id = $2 RETURNING *`, [estado, id]);
+    const transicionesValidas: Record<string, string[]> = {
+      pendiente: ['en_camino'],
+      en_camino: ['en_servicio'],
+      en_servicio: ['finalizado'],
+    };
 
-    await pool.query(`INSERT INTO historial_estado (servicio_id, estado_anterior, estado_nuevo, actor_id) VALUES ($1, $2, $3, $4)`, [id, servicio.estado, estado, tecnicoId]);
+    const permitidos = transicionesValidas[servicio.estado] || [];
+    if (!permitidos.includes(estado)) {
+      res.status(400).json({ error: `No se puede pasar de ${servicio.estado} a ${estado}` });
+      return;
+    }
+
+    const resultado = await pool.query(
+      `UPDATE servicio SET estado = $1, version = version + 1 WHERE id = $2 AND version = $3 RETURNING *`,
+      [estado, id, version]
+    );
+
+    await pool.query(
+      `INSERT INTO historial_estado (servicio_id, estado_anterior, estado_nuevo, actor_id) VALUES ($1, $2, $3, $4)`,
+      [id, servicio.estado, estado, tecnicoId]
+    );
 
     res.json(resultado.rows[0]);
-
   } catch (error) {
     console.error('Error al cambiar estado', error);
     res.status(500).json({ error: 'Error al cambiar estado del servicio' });

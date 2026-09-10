@@ -23,3 +23,13 @@ export function verificarToken(req: RequestConUsuario, res: Response, next: Next
     res.status(401).json({ error: 'Token inválido o expirado' });
   }
 }
+
+export function verificarRol(...rolesPermitidos: string[]) {
+  return (req: RequestConUsuario, res: Response, next: NextFunction) => {
+    if (!req.usuario || !rolesPermitidos.includes(req.usuario.rol)) {
+      res.status(403).json({ error: 'No tenés permiso para realizar esta acción' });
+      return;
+    }
+    next();
+  };
+}
