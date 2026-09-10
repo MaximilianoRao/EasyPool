@@ -6,7 +6,7 @@ import { verificarToken, verificarRol, RequestConUsuario } from './middleware/au
 import cors from 'cors';
 
 const app = express();
-const PORT = 3000;
+const PORT = 3001;
 
 app.use(cors());
 app.use(express.json()); // permite leer el body JSON de los pedidos POST
@@ -39,7 +39,7 @@ app.post('/login', async (req: Request, res: Response) => {
       { expiresIn: '8h' }
     );
 
-    res.json({ token });
+    res.json({ token, rol: usuario.rol });
   } catch (error) {
     console.error('Error en login:', error);
     res.status(500).json({ error: 'Error al iniciar sesión' });
@@ -68,6 +68,17 @@ app.get('/clientes/:id', verificarToken, async (req: RequestConUsuario, res: Res
     res.status(500).json({ error: 'Error al consultar cliente' });
   }
 });
+
+app.get('/tecnicos', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
+  try {
+    const resultado = await pool.query("SELECT id, nombre, email FROM usuario WHERE rol = 'tecnico'");
+    res.json(resultado.rows);
+  } catch (error) {
+    console.error('Error al consultar técnicos', error);
+    res.status(500).json({ error: 'Error al consultar técnicos' });
+  }
+});
+
 
 app.post('/clientes', verificarToken, async (req: RequestConUsuario, res: Response) => {
   const {nombre, telefono} = req.body;
