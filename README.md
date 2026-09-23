@@ -79,6 +79,27 @@ pnpm dev
 
 Corre en `http://localhost:5173`.
 
+
+## Tests
+
+El backend tiene tests automatizados (Jest + Supertest) que cubren autenticación, permisos por rol, transiciones de estado y reasignación de técnicos.
+
+Requieren una base de datos separada para no afectar los datos de desarrollo:
+
+```bash
+docker compose exec db psql -U easypool -d easypool -c "CREATE DATABASE easypool_test;"
+Get-Content db/schema.sql | docker compose exec -T db psql -U easypool -d easypool_test
+```
+
+Configurar `backend/.env.test` con la conexión a esa base (ver `backend/.env.example`).
+
+Correr los tests:
+
+```bash
+cd backend
+pnpm test
+```
+
 ## Estado actual
 
 Spike técnico completado: login → endpoint protegido (JWT) → frontend consume la API → datos persistidos en PostgreSQL.
