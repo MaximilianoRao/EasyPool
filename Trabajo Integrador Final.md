@@ -87,6 +87,10 @@ El valor agregado del desarrollo a medida no se considerará demostrado de antem
 | Node.js / Express | Ninguno |
 | Docker | 1 de 3 integrantes |
 
+### Testing
+
+Para las pruebas del backend se incorporó **Jest** (framework de testing) junto con **Supertest** (simula pedidos HTTP contra los endpoints sin necesidad de levantar un servidor real). Es la combinación estándar del ecosistema Node/Express.
+
 ### Justificación de la elección
 
 La elección del stack se fundamenta tanto en las características del problema como en los conocimientos actuales del equipo.

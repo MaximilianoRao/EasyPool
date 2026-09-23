@@ -35,19 +35,20 @@ Copiar `.env.example` a `.env` en la raíz, y `backend/.env.example` a `backend/
 
 ### 2. Base de datos
 
-Desde la raíz del proyecto:
+Desde la raíz del proyecto, levantar el contenedor de PostgreSQL:
 
 ```bash
 docker compose up -d
 ```
 
-Verificar que las tablas se crearon:
+Aplicar las migraciones (crea las tablas si es la primera vez, o aplica solo los cambios pendientes si la base ya existe):
 
 ```bash
-docker compose exec db psql -U easypool -d easypool -c "\dt"
+cd backend
+pnpm run migrate
 ```
 
-> Si cambian el `db/schema.sql`, hay que resetear el volumen para que se vuelva a aplicar: `docker compose down -v && docker compose up -d`.
+> Las migraciones viven en `db/migrations/`, numeradas en orden (`001_init.sql`, `002_...`). Nunca se modifican una vez aplicadas: un cambio de esquema siempre se agrega como un archivo nuevo. El script lleva registro de lo ya aplicado en la tabla `schema_migrations`, así que correr `pnpm run migrate` de nuevo no reaplica nada ni destruye datos existentes.
 
 ### 3. Backend
 
@@ -84,11 +85,12 @@ Corre en `http://localhost:5173`.
 
 El backend tiene tests automatizados (Jest + Supertest) que cubren autenticación, permisos por rol, transiciones de estado y reasignación de técnicos.
 
-Requieren una base de datos separada para no afectar los datos de desarrollo:
+Requieren una base de datos separada para no afectar los datos de desarrollo. Crear la base de test (una sola vez) y aplicar las migraciones:
 
 ```bash
-docker compose exec db psql -U easypool -d easypool -c "CREATE DATABASE easypool_test;"
-Get-Content db/schema.sql | docker compose exec -T db psql -U easypool -d easypool_test
+docker compose exec db psql -U easypool -c "CREATE DATABASE easypool_test;"
+cd backend
+pnpm run migrate:test
 ```
 
 Configurar `backend/.env.test` con la conexión a esa base (ver `backend/.env.example`).
@@ -96,7 +98,6 @@ Configurar `backend/.env.test` con la conexión a esa base (ver `backend/.env.ex
 Correr los tests:
 
 ```bash
-cd backend
 pnpm test
 ```
 

@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_servicio_tecnico_id ON servicio (tecnico_id);
