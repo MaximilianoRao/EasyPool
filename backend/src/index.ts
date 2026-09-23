@@ -79,8 +79,7 @@ app.get('/tecnicos', verificarToken, verificarRol('administrador'), async (req: 
   }
 });
 
-
-app.post('/clientes', verificarToken, async (req: RequestConUsuario, res: Response) => {
+app.post('/clientes', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
   const {nombre, telefono} = req.body;
   if (!nombre) {
     res.status(400).json({ error: 'El nombre es obligatorio'});
