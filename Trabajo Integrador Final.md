@@ -394,7 +394,7 @@ Pendiente → En camino → En servicio → Finalizado
           No Realizado    No Realizado
 
 (Pendiente / En camino) → Cancelado
-(Pendiente / En camino / En servicio) → Reprogramado
+(Pendiente / En camino) → Reprogramado | Administrador | Reagenda a nueva fecha/hora |
 ```
 
 **Tabla de transiciones**
