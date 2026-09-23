@@ -356,6 +356,9 @@ app.get('/servicios', verificarToken, async (req: RequestConUsuario, res: Respon
   }
 });
 
+export default app;
+if (require.main === module) {
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
+}
