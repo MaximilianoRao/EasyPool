@@ -81,6 +81,21 @@ pnpm dev
 Corre en `http://localhost:5173`.
 
 
+## Estado actual
+
+Recorrido vertical completo funcionando: administrador crea cliente/ubicación → crea servicio → asigna técnico → técnico inicia sesión → consulta sus servicios → cambia estado (incluyendo cancelación y reprogramación por parte del administrador) → administrador visualiza el resultado.
+
+Incluye:
+- Autenticación con JWT y permisos por rol (administrador/técnico).
+- Bloqueo optimista para evitar conflictos de concurrencia entre administrador y técnico.
+- 19 tests automatizados (Jest + Supertest) sobre autenticación, permisos, transiciones de estado y reasignación.
+- Migraciones incrementales de base de datos (`db/migrations/`).
+- Deployment funcionando: frontend y backend en Render, base de datos en Neon (ver sección "Deployment" más abajo).
+
+Pendiente para una etapa posterior (según cronograma): recurrencia de servicios (Planes de Mantenimiento), estado "No Realizado" en la interfaz del técnico, ruteo y notificaciones.
+
+Ver `Trabajo Integrador Final.md` para el detalle del modelo de dominio, reglas de estado, alcance del MVP y cronograma.
+
 ## Tests
 
 El backend tiene tests automatizados (Jest + Supertest) que cubren autenticación, permisos por rol, transiciones de estado y reasignación de técnicos.
@@ -101,11 +116,15 @@ Correr los tests:
 pnpm test
 ```
 
-## Estado actual
+## Deployment
 
-Spike técnico completado: login → endpoint protegido (JWT) → frontend consume la API → datos persistidos en PostgreSQL.
+- Frontend: https://easypool-frontend.onrender.com
+- Backend: https://easypool-backend.onrender.com
+- Base de datos: PostgreSQL en Neon
 
-Ver `Trabajo Integrador Final.md` para el detalle del modelo de dominio, reglas de estado, alcance del MVP y cronograma.
+> Nota: el backend gratuito de Render "duerme" tras 15 minutos sin uso — el primer pedido después de un rato puede tardar hasta un minuto en responder.
+
+Las credenciales de este deployment no están documentadas públicamente por seguridad; contactar al equipo si se necesitan para la revisión.
 
 <br>
 
