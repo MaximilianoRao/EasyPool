@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { login, obtenerClientes, obtenerServicios} from './api';
 import AdminPanel from './AdminPanel';
+import TecnicoPanel from './TecnicoPanel';
 
 function App() {
   const [email, setEmail] = useState('');
@@ -78,7 +79,7 @@ async function handleLogin(e: React.FormEvent) {
           />
         )}
         {rol === 'tecnico' && (
-          <p>Vista del técnico — la armamos en la próxima rama.</p>
+          <TecnicoPanel token={token} />
         )}
         <h2>Clientes</h2>
         {clientes.length === 0 ? (

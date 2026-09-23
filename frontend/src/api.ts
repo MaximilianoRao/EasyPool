@@ -109,3 +109,27 @@ export async function obtenerServicios(token: string) {
   if (!respuesta.ok) throw new Error('No se pudieron obtener los servicios');
   return respuesta.json();
 }
+
+
+export async function obtenerMisServicios(token: string) {
+  const respuesta = await fetch(`${API_URL}/mis-servicios`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!respuesta.ok) throw new Error('No se pudieron obtener tus servicios');
+  return respuesta.json();
+}
+
+export async function cambiarEstado(token: string, servicioId: number, estado: string, version: number) {
+  const respuesta = await fetch(`${API_URL}/servicios/${servicioId}/estado`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ estado, version }),
+  });
+
+  if (!respuesta.ok) {
+    const datos = await respuesta.json().catch(() => ({}));
+    throw new Error(datos.error || 'No se pudo cambiar el estado');
+  }
+
+  return respuesta.json();
+}
