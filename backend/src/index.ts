@@ -252,6 +252,96 @@ app.patch('/servicios/:id/estado', verificarToken, verificarRol('tecnico'), asyn
   }
 });
 
+
+app.patch('/servicios/:id/cancelar', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
+  const { id } = req.params;
+  const { version, motivo } = req.body;
+  const adminId = req.usuario?.id;
+
+  try {
+    const servicioResultado = await pool.query('SELECT * FROM servicio WHERE id = $1', [id]);
+    const servicio = servicioResultado.rows[0];
+
+    if (!servicio) {
+      res.status(404).json({ error: 'Servicio no encontrado' });
+      return;
+    }
+
+    if (servicio.version !== version) {
+      res.status(409).json({ error: 'El servicio fue modificado por otra persona, actualizá la información e intentá de nuevo' });
+      return;
+    }
+
+    const estadosCancelables = ['pendiente', 'en_camino'];
+    if (!estadosCancelables.includes(servicio.estado)) {
+      res.status(400).json({ error: `No se puede cancelar un servicio en estado ${servicio.estado}` });
+      return;
+    }
+
+    const resultado = await pool.query(
+      `UPDATE servicio SET estado = 'cancelado', version = version + 1 WHERE id = $1 AND version = $2 RETURNING *`,
+      [id, version]
+    );
+
+    await pool.query(
+      `INSERT INTO historial_estado (servicio_id, estado_anterior, estado_nuevo, actor_id, motivo) VALUES ($1, $2, $3, $4, $5)`,
+      [id, servicio.estado, 'cancelado', adminId, motivo || null]
+    );
+
+    res.json(resultado.rows[0]);
+  } catch (error) {
+    console.error('Error al cancelar servicio', error);
+    res.status(500).json({ error: 'Error al cancelar el servicio' });
+  }
+});
+
+app.patch('/servicios/:id/reprogramar', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
+  const { id } = req.params;
+  const { version, fecha_hora } = req.body;
+  const adminId = req.usuario?.id;
+
+  if (!fecha_hora) {
+    res.status(400).json({ error: 'La nueva fecha y hora son obligatorias' });
+    return;
+  }
+
+  try {
+    const servicioResultado = await pool.query('SELECT * FROM servicio WHERE id = $1', [id]);
+    const servicio = servicioResultado.rows[0];
+
+    if (!servicio) {
+      res.status(404).json({ error: 'Servicio no encontrado' });
+      return;
+    }
+
+    if (servicio.version !== version) {
+      res.status(409).json({ error: 'El servicio fue modificado por otra persona, actualizá la información e intentá de nuevo' });
+      return;
+    }
+
+    const estadosReprogramables = ['pendiente', 'en_camino'];
+    if (!estadosReprogramables.includes(servicio.estado)) {
+      res.status(400).json({ error: `No se puede reprogramar un servicio en estado ${servicio.estado}` });
+      return;
+    }
+
+    const resultado = await pool.query(
+      `UPDATE servicio SET estado = 'pendiente', fecha_hora = $1, version = version + 1 WHERE id = $2 AND version = $3 RETURNING *`,
+      [fecha_hora, id, version]
+    );
+
+    await pool.query(
+      `INSERT INTO historial_estado (servicio_id, estado_anterior, estado_nuevo, actor_id, motivo) VALUES ($1, $2, $3, $4, $5)`,
+      [id, servicio.estado, 'pendiente', adminId, `Reprogramado a ${fecha_hora}`]
+    );
+
+    res.json(resultado.rows[0]);
+  } catch (error) {
+    console.error('Error al reprogramar servicio', error);
+    res.status(500).json({ error: 'Error al reprogramar el servicio' });
+  }
+});
+
 app.get('/servicios', verificarToken, async (req: RequestConUsuario, res: Response) => {
   try {
     const resultado = await pool.query(
