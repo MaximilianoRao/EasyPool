@@ -50,7 +50,7 @@ describe('Asignación y reasignación de técnicos', () => {
     const respuesta = await request(app)
       .patch(`/servicios/${servicio.id}/asignar`)
       .set('Authorization', `Bearer ${tokenTecnico1}`)
-      .send({ tecnico_id: tecnico1Id });
+      .send({ tecnico_id: tecnico1Id, version: servicio.version });
 
     expect(respuesta.status).toBe(403);
   });
@@ -59,7 +59,7 @@ describe('Asignación y reasignación de técnicos', () => {
     const respuesta = await request(app)
       .patch(`/servicios/${servicio.id}/asignar`)
       .set('Authorization', `Bearer ${tokenAdmin}`)
-      .send({ tecnico_id: 999999 });
+      .send({ tecnico_id: 999999, version: servicio.version });
 
     expect(respuesta.status).toBe(404);
   });
@@ -71,38 +71,60 @@ describe('Asignación y reasignación de técnicos', () => {
     const respuesta = await request(app)
       .patch(`/servicios/${servicio.id}/asignar`)
       .set('Authorization', `Bearer ${tokenAdmin}`)
-      .send({ tecnico_id: adminId });
+      .send({ tecnico_id: adminId, version: servicio.version });
 
     expect(respuesta.status).toBe(400);
+  });
+
+  it('rechaza la asignación si la versión está desactualizada', async () => {
+    const respuesta = await request(app)
+      .patch(`/servicios/${servicio.id}/asignar`)
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send({ tecnico_id: tecnico1Id, version: servicio.version + 1 });
+
+    expect(respuesta.status).toBe(409);
   });
 
   it('el administrador asigna correctamente un técnico', async () => {
     const respuesta = await request(app)
       .patch(`/servicios/${servicio.id}/asignar`)
       .set('Authorization', `Bearer ${tokenAdmin}`)
-      .send({ tecnico_id: tecnico1Id });
+      .send({ tecnico_id: tecnico1Id, version: servicio.version });
 
     expect(respuesta.status).toBe(200);
     expect(respuesta.body.tecnico_id).toBe(tecnico1Id);
+    expect(respuesta.body.estado).toBe('pendiente');
+    expect(respuesta.body.version).toBe(servicio.version + 1);
+    servicio = respuesta.body;
+  });
+
+  it('queda registrado en el historial con el técnico anterior y el nuevo', async () => {
+    const historialResultado = await pool.query(
+      'SELECT * FROM historial_estado WHERE servicio_id = $1 ORDER BY timestamp DESC LIMIT 1',
+      [servicio.id]
+    );
+    const ultimoEvento = historialResultado.rows[0];
+
+    expect(ultimoEvento.tecnico_anterior_id).toBeNull();
+    expect(ultimoEvento.tecnico_nuevo_id).toBe(tecnico1Id);
   });
 
   it('el administrador puede reasignar el servicio a otro técnico', async () => {
     const respuesta = await request(app)
       .patch(`/servicios/${servicio.id}/asignar`)
       .set('Authorization', `Bearer ${tokenAdmin}`)
-      .send({ tecnico_id: tecnico2Id });
+      .send({ tecnico_id: tecnico2Id, version: servicio.version });
 
     expect(respuesta.status).toBe(200);
     expect(respuesta.body.tecnico_id).toBe(tecnico2Id);
+    servicio = respuesta.body;
   });
 
   it('el técnico 1 ya no puede operar el servicio después de la reasignación', async () => {
-    const servicioActual = (await pool.query('SELECT * FROM servicio WHERE id = $1', [servicio.id])).rows[0];
-
     const respuesta = await request(app)
       .patch(`/servicios/${servicio.id}/estado`)
       .set('Authorization', `Bearer ${tokenTecnico1}`)
-      .send({ estado: 'en_camino', version: servicioActual.version });
+      .send({ estado: 'en_camino', version: servicio.version });
 
     expect(respuesta.status).toBe(404);
   });

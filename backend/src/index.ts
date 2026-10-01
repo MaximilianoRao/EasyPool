@@ -156,10 +156,16 @@ app.post('/servicios', verificarToken, verificarRol('administrador'), async (req
 
 app.patch('/servicios/:id/asignar', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
   const { id } = req.params;
-  const { tecnico_id } = req.body;
+  const { tecnico_id, version } = req.body;
+  const adminId = req.usuario?.id;
 
   if (!tecnico_id) {
     res.status(400).json({ error: 'El técnico es obligatorio' });
+    return;
+  }
+
+  if (version === undefined) {
+    res.status(400).json({ error: 'La versión es obligatoria' });
     return;
   }
 
@@ -176,9 +182,51 @@ app.patch('/servicios/:id/asignar', verificarToken, verificarRol('administrador'
       res.status(400).json({ error: 'El usuario indicado no tiene rol de técnico' });
       return;
     }
-    const resultado = await pool.query(`UPDATE servicio SET tecnico_id = $1 WHERE id = $2 RETURNING *`, [tecnico_id, id]);
-    res.json(resultado.rows[0]);
 
+    const servicioResultado = await pool.query('SELECT * FROM servicio WHERE id = $1', [id]);
+    const servicio = servicioResultado.rows[0];
+
+    if (!servicio) {
+      res.status(404).json({ error: 'Servicio no encontrado' });
+      return;
+    }
+
+    const estadosAsignables = ['pendiente', 'en_camino'];
+    if (!estadosAsignables.includes(servicio.estado)) {
+      res.status(400).json({ error: `No se puede reasignar un servicio en estado ${servicio.estado}` });
+      return;
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const actualizado = await client.query(
+        `UPDATE servicio SET tecnico_id = $1, estado = 'pendiente', version = version + 1
+         WHERE id = $2 AND version = $3 RETURNING *`,
+        [tecnico_id, id, version]
+      );
+
+      if (actualizado.rowCount === 0) {
+        await client.query('ROLLBACK');
+        res.status(409).json({ error: 'El servicio fue modificado por otra persona, actualizá la información e intentá de nuevo' });
+        return;
+      }
+
+      await client.query(
+        `INSERT INTO historial_estado (servicio_id, estado_anterior, estado_nuevo, actor_id, tecnico_anterior_id, tecnico_nuevo_id, motivo)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [id, servicio.estado, 'pendiente', adminId, servicio.tecnico_id, tecnico_id, 'Asignación de técnico']
+      );
+
+      await client.query('COMMIT');
+      res.json(actualizado.rows[0]);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   } catch (error) {
     console.error('Error al asignar técnico', error);
     res.status(500).json({ error: 'Error al asignar técnico' });
@@ -206,7 +254,7 @@ app.get('/mis-servicios', verificarToken, verificarRol('tecnico'), async (req: R
 
 app.patch('/servicios/:id/estado', verificarToken, verificarRol('tecnico'), async (req: RequestConUsuario, res: Response) => {
   const { id } = req.params;
-  const { estado, version } = req.body;
+  const { estado, version, motivo } = req.body;
   const tecnicoId = req.usuario?.id;
 
   try {
@@ -218,15 +266,10 @@ app.patch('/servicios/:id/estado', verificarToken, verificarRol('tecnico'), asyn
       return;
     }
 
-    if (servicio.version !== version) {
-      res.status(409).json({ error: 'El servicio fue modificado por otra persona, actualizá la información e intentá de nuevo' });
-      return;
-    }
-
     const transicionesValidas: Record<string, string[]> = {
       pendiente: ['en_camino'],
-      en_camino: ['en_servicio'],
-      en_servicio: ['finalizado'],
+      en_camino: ['en_servicio', 'no_realizado'],
+      en_servicio: ['finalizado', 'no_realizado'],
     };
 
     const permitidos = transicionesValidas[servicio.estado] || [];
@@ -235,17 +278,39 @@ app.patch('/servicios/:id/estado', verificarToken, verificarRol('tecnico'), asyn
       return;
     }
 
-    const resultado = await pool.query(
-      `UPDATE servicio SET estado = $1, version = version + 1 WHERE id = $2 AND version = $3 RETURNING *`,
-      [estado, id, version]
-    );
+    if (estado === 'no_realizado' && !motivo) {
+      res.status(400).json({ error: 'El motivo es obligatorio para marcar un servicio como no realizado' });
+      return;
+    }
 
-    await pool.query(
-      `INSERT INTO historial_estado (servicio_id, estado_anterior, estado_nuevo, actor_id) VALUES ($1, $2, $3, $4)`,
-      [id, servicio.estado, estado, tecnicoId]
-    );
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    res.json(resultado.rows[0]);
+      const actualizado = await client.query(
+        `UPDATE servicio SET estado = $1, motivo_no_realizado = $2, version = version + 1 WHERE id = $3 AND version = $4 RETURNING *`,
+        [estado, estado === 'no_realizado' ? motivo : null, id, version]
+      );
+
+      if (actualizado.rowCount === 0) {
+        await client.query('ROLLBACK');
+        res.status(409).json({ error: 'El servicio fue modificado por otra persona, actualizá la información e intentá de nuevo' });
+        return;
+      }
+
+      await client.query(
+        `INSERT INTO historial_estado (servicio_id, estado_anterior, estado_nuevo, actor_id, motivo) VALUES ($1, $2, $3, $4, $5)`,
+        [id, servicio.estado, estado, tecnicoId, estado === 'no_realizado' ? motivo : null]
+      );
+
+      await client.query('COMMIT');
+      res.json(actualizado.rows[0]);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   } catch (error) {
     console.error('Error al cambiar estado', error);
     res.status(500).json({ error: 'Error al cambiar estado del servicio' });
@@ -267,28 +332,40 @@ app.patch('/servicios/:id/cancelar', verificarToken, verificarRol('administrador
       return;
     }
 
-    if (servicio.version !== version) {
-      res.status(409).json({ error: 'El servicio fue modificado por otra persona, actualizá la información e intentá de nuevo' });
-      return;
-    }
-
-    const estadosCancelables = ['pendiente', 'en_camino'];
+    const estadosCancelables = ['pendiente', 'en_camino', 'no_realizado'];
     if (!estadosCancelables.includes(servicio.estado)) {
       res.status(400).json({ error: `No se puede cancelar un servicio en estado ${servicio.estado}` });
       return;
     }
 
-    const resultado = await pool.query(
-      `UPDATE servicio SET estado = 'cancelado', version = version + 1 WHERE id = $1 AND version = $2 RETURNING *`,
-      [id, version]
-    );
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    await pool.query(
-      `INSERT INTO historial_estado (servicio_id, estado_anterior, estado_nuevo, actor_id, motivo) VALUES ($1, $2, $3, $4, $5)`,
-      [id, servicio.estado, 'cancelado', adminId, motivo || null]
-    );
+      const actualizado = await client.query(
+        `UPDATE servicio SET estado = 'cancelado', version = version + 1 WHERE id = $1 AND version = $2 RETURNING *`,
+        [id, version]
+      );
 
-    res.json(resultado.rows[0]);
+      if (actualizado.rowCount === 0) {
+        await client.query('ROLLBACK');
+        res.status(409).json({ error: 'El servicio fue modificado por otra persona, actualizá la información e intentá de nuevo' });
+        return;
+      }
+
+      await client.query(
+        `INSERT INTO historial_estado (servicio_id, estado_anterior, estado_nuevo, actor_id, motivo) VALUES ($1, $2, $3, $4, $5)`,
+        [id, servicio.estado, 'cancelado', adminId, motivo || null]
+      );
+
+      await client.query('COMMIT');
+      res.json(actualizado.rows[0]);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   } catch (error) {
     console.error('Error al cancelar servicio', error);
     res.status(500).json({ error: 'Error al cancelar el servicio' });
@@ -314,28 +391,41 @@ app.patch('/servicios/:id/reprogramar', verificarToken, verificarRol('administra
       return;
     }
 
-    if (servicio.version !== version) {
-      res.status(409).json({ error: 'El servicio fue modificado por otra persona, actualizá la información e intentá de nuevo' });
-      return;
-    }
-
-    const estadosReprogramables = ['pendiente', 'en_camino'];
+    const estadosReprogramables = ['pendiente', 'en_camino', 'no_realizado'];
     if (!estadosReprogramables.includes(servicio.estado)) {
       res.status(400).json({ error: `No se puede reprogramar un servicio en estado ${servicio.estado}` });
       return;
     }
 
-    const resultado = await pool.query(
-      `UPDATE servicio SET estado = 'pendiente', fecha_hora = $1, version = version + 1 WHERE id = $2 AND version = $3 RETURNING *`,
-      [fecha_hora, id, version]
-    );
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    await pool.query(
-      `INSERT INTO historial_estado (servicio_id, estado_anterior, estado_nuevo, actor_id, motivo) VALUES ($1, $2, $3, $4, $5)`,
-      [id, servicio.estado, 'pendiente', adminId, `Reprogramado a ${fecha_hora}`]
-    );
+      const actualizado = await client.query(
+        `UPDATE servicio SET estado = 'pendiente', fecha_hora = $1, version = version + 1 WHERE id = $2 AND version = $3 RETURNING *`,
+        [fecha_hora, id, version]
+      );
 
-    res.json(resultado.rows[0]);
+      if (actualizado.rowCount === 0) {
+        await client.query('ROLLBACK');
+        res.status(409).json({ error: 'El servicio fue modificado por otra persona, actualizá la información e intentá de nuevo' });
+        return;
+      }
+
+      await client.query(
+        `INSERT INTO historial_estado (servicio_id, estado_anterior, estado_nuevo, actor_id, motivo, fecha_anterior, fecha_nueva)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [id, servicio.estado, 'pendiente', adminId, 'Reprogramación', servicio.fecha_hora, fecha_hora]
+      );
+
+      await client.query('COMMIT');
+      res.json(actualizado.rows[0]);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   } catch (error) {
     console.error('Error al reprogramar servicio', error);
     res.status(500).json({ error: 'Error al reprogramar el servicio' });

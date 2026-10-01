@@ -44,11 +44,11 @@ export async function crearServicioDePrueba(tokenAdmin: string, ubicacionId: num
   return respuesta.body;
 }
 
-export async function asignarTecnicoDePrueba(tokenAdmin: string, servicioId: number, tecnicoId: number) {
+export async function asignarTecnicoDePrueba(tokenAdmin: string, servicioId: number, tecnicoId: number, version: number) {
   const respuesta = await request(app)
     .patch(`/servicios/${servicioId}/asignar`)
     .set('Authorization', `Bearer ${tokenAdmin}`)
-    .send({ tecnico_id: tecnicoId });
+    .send({ tecnico_id: tecnicoId, version });
   return respuesta.body;
 }
 
