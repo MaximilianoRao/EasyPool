@@ -56,7 +56,7 @@ app.get('/clientes', verificarToken, verificarRol('administrador'), async (req: 
   }
 });
 
-app.get('/clientes/:id', verificarToken, async (req: RequestConUsuario, res: Response) => {
+app.get('/clientes/:id', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
   const { id } = req.params;
 
   try {
@@ -115,7 +115,7 @@ app.post('/clientes/:id/ubicaciones', verificarToken, verificarRol('administrado
 
 });
 
-app.get('/clientes/:id/ubicaciones', verificarToken, async (req: RequestConUsuario, res: Response) => {
+app.get('/clientes/:id/ubicaciones', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
 
   const { id } = req.params;
 
@@ -342,7 +342,7 @@ app.patch('/servicios/:id/reprogramar', verificarToken, verificarRol('administra
   }
 });
 
-app.get('/servicios', verificarToken, async (req: RequestConUsuario, res: Response) => {
+app.get('/servicios', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
   try {
     const resultado = await pool.query(
       'SELECT * FROM servicio ORDER BY fecha_hora'
