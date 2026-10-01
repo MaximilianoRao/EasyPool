@@ -56,6 +56,7 @@ function AdminPanel({
     try {
       const cliente = await crearCliente(token, nombre, telefono);
       await crearUbicacion(token, cliente.id, direccion, Number(latitud), Number(longitud));
+      
 
       setMensaje(`Cliente "${cliente.nombre}" creado con su ubicación.`);
       onClienteCreado();
@@ -77,7 +78,7 @@ function AdminPanel({
       const servicio = await crearServicio(token, Number(ubicacionSeleccionada), fechaHora);
 
       if (tecnicoSeleccionado) {
-        await asignarTecnico(token, servicio.id, Number(tecnicoSeleccionado));
+        await asignarTecnico(token, servicio.id, Number(tecnicoSeleccionado), servicio.version);
       }
 
       setMensajeServicio('Servicio creado correctamente.');

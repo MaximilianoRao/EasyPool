@@ -92,11 +92,11 @@ export async function crearServicio(token: string, ubicacionId: number, fechaHor
   return respuesta.json();
 }
 
-export async function asignarTecnico(token: string, servicioId: number, tecnicoId: number) {
+export async function asignarTecnico(token: string, servicioId: number, tecnicoId: number, version: number) {
   const respuesta = await fetch(`${API_URL}/servicios/${servicioId}/asignar`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ tecnico_id: tecnicoId }),
+    body: JSON.stringify({ tecnico_id: tecnicoId, version }),
   });
   if (!respuesta.ok) throw new Error('No se pudo asignar el técnico');
   return respuesta.json();
@@ -116,6 +116,21 @@ export async function obtenerMisServicios(token: string) {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!respuesta.ok) throw new Error('No se pudieron obtener tus servicios');
+  return respuesta.json();
+}
+
+export async function marcarNoRealizado(token: string, servicioId: number, motivo: string, version: number) {
+  const respuesta = await fetch(`${API_URL}/servicios/${servicioId}/estado`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ estado: 'no_realizado', motivo, version }),
+  });
+
+  if (!respuesta.ok) {
+    const datos = await respuesta.json().catch(() => ({}));
+    throw new Error(datos.error || 'No se pudo marcar el servicio como no realizado');
+  }
+
   return respuesta.json();
 }
 

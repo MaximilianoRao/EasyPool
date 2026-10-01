@@ -31,7 +31,7 @@ describe('Transiciones de estado y bloqueo optimista', () => {
     const { cliente, ubicacion } = await crearClienteConUbicacion(tokenAdmin);
     clienteId = cliente.id;
     servicio = await crearServicioDePrueba(tokenAdmin, ubicacion.id);
-    servicio = await asignarTecnicoDePrueba(tokenAdmin, servicio.id, tecnico.id);
+    servicio = await asignarTecnicoDePrueba(tokenAdmin, servicio.id, tecnico.id, servicio.version);
   });
 
   afterAll(async () => {
@@ -103,4 +103,90 @@ describe('Transiciones de estado y bloqueo optimista', () => {
 
     expect(respuesta.status).toBe(400);
   });
+
+  it('el técnico puede marcar un servicio como no_realizado con motivo', async () => {
+    const { cliente, ubicacion } = await crearClienteConUbicacion(tokenAdmin);
+    const servicioAuxResp = await crearServicioDePrueba(tokenAdmin, ubicacion.id);
+    const tecnicoResultado = await pool.query('SELECT id FROM usuario WHERE email = $1', [emailTecnico]);
+    const tecnicoId = tecnicoResultado.rows[0].id;
+    const servicioAsignado = await asignarTecnicoDePrueba(tokenAdmin, servicioAuxResp.id, tecnicoId, servicioAuxResp.version);
+
+    const enCamino = await request(app)
+      .patch(`/servicios/${servicioAsignado.id}/estado`)
+      .set('Authorization', `Bearer ${tokenTecnico}`)
+      .send({ estado: 'en_camino', version: servicioAsignado.version });
+
+    const respuesta = await request(app)
+      .patch(`/servicios/${servicioAsignado.id}/estado`)
+      .set('Authorization', `Bearer ${tokenTecnico}`)
+      .send({ estado: 'no_realizado', motivo: 'Cliente ausente', version: enCamino.body.version });
+
+    expect(respuesta.status).toBe(200);
+    expect(respuesta.body.estado).toBe('no_realizado');
+    expect(respuesta.body.motivo_no_realizado).toBe('Cliente ausente');
+
+    await borrarClienteCompleto(cliente.id);
+  });
+
+  it('rechaza marcar no_realizado sin motivo', async () => {
+    const { cliente, ubicacion } = await crearClienteConUbicacion(tokenAdmin);
+    const servicioAuxResp = await crearServicioDePrueba(tokenAdmin, ubicacion.id);
+    const tecnicoResultado = await pool.query('SELECT id FROM usuario WHERE email = $1', [emailTecnico]);
+    const tecnicoId = tecnicoResultado.rows[0].id;
+    const servicioAsignado = await asignarTecnicoDePrueba(tokenAdmin, servicioAuxResp.id, tecnicoId, servicioAuxResp.version);
+
+    const enCamino = await request(app)
+      .patch(`/servicios/${servicioAsignado.id}/estado`)
+      .set('Authorization', `Bearer ${tokenTecnico}`)
+      .send({ estado: 'en_camino', version: servicioAsignado.version });
+
+    const respuesta = await request(app)
+      .patch(`/servicios/${servicioAsignado.id}/estado`)
+      .set('Authorization', `Bearer ${tokenTecnico}`)
+      .send({ estado: 'no_realizado', version: enCamino.body.version });
+
+    expect(respuesta.status).toBe(400);
+
+    await borrarClienteCompleto(cliente.id);
+  });
+
+  it('el administrador puede reprogramar un servicio no_realizado', async () => {
+    const { cliente, ubicacion } = await crearClienteConUbicacion(tokenAdmin);
+    const servicioAuxResp = await crearServicioDePrueba(tokenAdmin, ubicacion.id);
+    const tecnicoResultado = await pool.query('SELECT id FROM usuario WHERE email = $1', [emailTecnico]);
+    const tecnicoId = tecnicoResultado.rows[0].id;
+    const servicioAsignado = await asignarTecnicoDePrueba(tokenAdmin, servicioAuxResp.id, tecnicoId, servicioAuxResp.version);
+
+    const enCamino = await request(app)
+      .patch(`/servicios/${servicioAsignado.id}/estado`)
+      .set('Authorization', `Bearer ${tokenTecnico}`)
+      .send({ estado: 'en_camino', version: servicioAsignado.version });
+
+    const noRealizado = await request(app)
+      .patch(`/servicios/${servicioAsignado.id}/estado`)
+      .set('Authorization', `Bearer ${tokenTecnico}`)
+      .send({ estado: 'no_realizado', motivo: 'Lluvia', version: enCamino.body.version });
+
+    const respuesta = await request(app)
+      .patch(`/servicios/${servicioAsignado.id}/reprogramar`)
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send({ version: noRealizado.body.version, fecha_hora: '2026-10-15T10:00:00' });
+
+    expect(respuesta.status).toBe(200);
+    expect(respuesta.body.estado).toBe('pendiente');
+
+    await borrarClienteCompleto(cliente.id);
+  });
+
+  it('la base de datos ya no acepta el estado reprogramado', async () => {
+    const { cliente, ubicacion } = await crearClienteConUbicacion(tokenAdmin);
+    const servicioAux = await crearServicioDePrueba(tokenAdmin, ubicacion.id);
+
+    await expect(
+      pool.query(`UPDATE servicio SET estado = 'reprogramado' WHERE id = $1`, [servicioAux.id])
+    ).rejects.toThrow();
+
+    await borrarClienteCompleto(cliente.id);
+  });
+
 });

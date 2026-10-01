@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { obtenerMisServicios, cambiarEstado } from './api';
+import { obtenerMisServicios, cambiarEstado, marcarNoRealizado } from './api';
 
 const siguienteEstado: Record<string, string> = {
   pendiente: 'en_camino',
@@ -44,6 +44,20 @@ function TecnicoPanel({ token }: { token: string }) {
     }
   }
 
+  async function handleNoRealizado(servicio: any) {
+    setError('');
+    const motivo = window.prompt('¿Por qué no se pudo realizar el servicio?');
+    if (!motivo) return;
+
+    try {
+      await marcarNoRealizado(token, servicio.id, motivo, servicio.version);
+      await cargar();
+    } catch (err: any) {
+      setError(err.message || 'No se pudo marcar el servicio como no realizado');
+      await cargar();
+    }
+  }
+
   return (
     <div>
       <h2>Mis Servicios</h2>
@@ -58,6 +72,11 @@ function TecnicoPanel({ token }: { token: string }) {
               {siguienteEstado[s.estado] && (
                 <button onClick={() => handleCambiarEstado(s)} style={{ marginLeft: '10px' }}>
                   {textoBoton[s.estado]}
+                </button>
+              )}
+              {(s.estado === 'en_camino' || s.estado === 'en_servicio') && (
+                <button onClick={() => handleNoRealizado(s)} style={{ marginLeft: '10px' }}>
+                  No realizado
                 </button>
               )}
             </li>

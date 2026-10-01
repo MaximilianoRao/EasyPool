@@ -392,14 +392,19 @@ A partir de este supuesto, se decide diferenciar entre el **plan de mantenimient
 
 **Estados del servicio**
 
-```
-Pendiente → En camino → En servicio → Finalizado
-                ↓              ↓
-          No Realizado    No Realizado
 
-(Pendiente / En camino) → Cancelado
-(Pendiente / En camino) → Reprogramado | Administrador | Reagenda a nueva fecha/hora |
-```
+| Desde | Hacia | Quién |
+|---|---|---|
+| Pendiente | En camino | Técnico |
+| En camino | En servicio | Técnico |
+| En camino | No realizado | Técnico (requiere motivo) |
+| En servicio | Finalizado | Técnico |
+| En servicio | No realizado | Técnico (requiere motivo) |
+| Pendiente / En camino | Cancelado | Administrador |
+| Pendiente / En camino / No realizado | Reprogramado (acción → vuelve a Pendiente) | Administrador |
+| Pendiente / En camino | Reasignado (acción → vuelve a Pendiente) | Administrador |
+
+> "Reprogramado" y "Reasignado" no son estados del servicio — son acciones que generan un evento en `historial_estado` y devuelven el servicio a "Pendiente". Esto evita mantener dos modelos distintos entre documentación, base de datos y código.4
 
 **Tabla de transiciones**
 
