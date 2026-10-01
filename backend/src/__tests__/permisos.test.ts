@@ -57,4 +57,21 @@ describe('Permisos por rol', () => {
     const respuesta = await request(app).get('/clientes');
     expect(respuesta.status).toBe(401);
   });
+
+  it('un técnico no puede listar todos los servicios (403)', async () => {
+    const respuesta = await request(app)
+      .get('/servicios')
+      .set('Authorization', `Bearer ${tokenTecnico}`);
+
+    expect(respuesta.status).toBe(403);
+  });
+
+  it('un técnico no puede consultar un cliente por id (403)', async () => {
+    const respuesta = await request(app)
+      .get('/clientes/1')
+      .set('Authorization', `Bearer ${tokenTecnico}`);
+
+    expect(respuesta.status).toBe(403);
+  });
+
 });
