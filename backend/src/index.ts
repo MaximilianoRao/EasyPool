@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { pool } from './db';
 import { verificarToken, verificarRol, RequestConUsuario } from './middleware/auth';
 import cors from 'cors';
+import { generarServiciosDesdePlanes } from './recurrencia';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -443,6 +444,82 @@ app.get('/servicios', verificarToken, verificarRol('administrador'), async (req:
   } catch (error) {
     console.error('Error al consultar servicios', error);
     res.status(500).json({ error: 'Error al consultar servicios' });
+  }
+});
+
+app.post('/planes-mantenimiento', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
+  const { ubicacion_id, frecuencia, fecha_inicio } = req.body;
+
+  if (!ubicacion_id || !frecuencia || !fecha_inicio) {
+    res.status(400).json({ error: 'ubicacion_id, frecuencia y fecha_inicio son obligatorios' });
+    return;
+  }
+
+  if (!['semanal', 'quincenal', 'mensual'].includes(frecuencia)) {
+    res.status(400).json({ error: 'frecuencia debe ser semanal, quincenal o mensual' });
+    return;
+  }
+
+  try {
+    const resultado = await pool.query(
+      `INSERT INTO plan_mantenimiento (ubicacion_id, frecuencia, fecha_inicio, proxima_generacion, activo)
+       VALUES ($1, $2, $3, $3, true) RETURNING *`,
+      [ubicacion_id, frecuencia, fecha_inicio]
+    );
+    res.status(201).json(resultado.rows[0]);
+  } catch (error) {
+    console.error('Error al crear plan de mantenimiento', error);
+    res.status(500).json({ error: 'Error al crear el plan de mantenimiento' });
+  }
+});
+
+app.get('/planes-mantenimiento', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
+  try {
+    const resultado = await pool.query('SELECT * FROM plan_mantenimiento ORDER BY fecha_inicio');
+    res.json(resultado.rows);
+  } catch (error) {
+    console.error('Error al consultar planes de mantenimiento', error);
+    res.status(500).json({ error: 'Error al consultar planes de mantenimiento' });
+  }
+});
+
+app.patch('/planes-mantenimiento/:id/pausar', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
+  const { id } = req.params;
+  try {
+    const resultado = await pool.query('UPDATE plan_mantenimiento SET activo = false WHERE id = $1 RETURNING *', [id]);
+    if (resultado.rowCount === 0) {
+      res.status(404).json({ error: 'Plan no encontrado' });
+      return;
+    }
+    res.json(resultado.rows[0]);
+  } catch (error) {
+    console.error('Error al pausar plan', error);
+    res.status(500).json({ error: 'Error al pausar el plan' });
+  }
+});
+
+app.patch('/planes-mantenimiento/:id/reactivar', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
+  const { id } = req.params;
+  try {
+    const resultado = await pool.query('UPDATE plan_mantenimiento SET activo = true WHERE id = $1 RETURNING *', [id]);
+    if (resultado.rowCount === 0) {
+      res.status(404).json({ error: 'Plan no encontrado' });
+      return;
+    }
+    res.json(resultado.rows[0]);
+  } catch (error) {
+    console.error('Error al reactivar plan', error);
+    res.status(500).json({ error: 'Error al reactivar el plan' });
+  }
+});
+
+app.post('/planes-mantenimiento/generar', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
+  try {
+    const totalGenerados = await generarServiciosDesdePlanes();
+    res.json({ mensaje: `Se generaron ${totalGenerados} servicios nuevos.` });
+  } catch (error) {
+    console.error('Error al generar servicios recurrentes', error);
+    res.status(500).json({ error: 'Error al generar servicios recurrentes' });
   }
 });
 

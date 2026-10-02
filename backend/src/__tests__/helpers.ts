@@ -62,6 +62,10 @@ export async function borrarClienteCompleto(clienteId: number) {
     'DELETE FROM servicio WHERE ubicacion_id IN (SELECT id FROM ubicacion WHERE cliente_id = $1)',
     [clienteId]
   );
+  await pool.query(
+    'DELETE FROM plan_mantenimiento WHERE ubicacion_id IN (SELECT id FROM ubicacion WHERE cliente_id = $1)',
+    [clienteId]
+  );
   await pool.query('DELETE FROM ubicacion WHERE cliente_id = $1', [clienteId]);
   await pool.query('DELETE FROM cliente WHERE id = $1', [clienteId]);
 }
