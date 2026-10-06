@@ -88,7 +88,7 @@ Recorrido vertical completo funcionando: administrador crea cliente/ubicación �
 Incluye:
 - Autenticación con JWT y permisos por rol (administrador/técnico).
 - Bloqueo optimista para evitar conflictos de concurrencia entre administrador y técnico.
-- 19 tests automatizados (Jest + Supertest) sobre autenticación, permisos, transiciones de estado y reasignación.
+- 38 tests automatizados (Jest + Supertest): autenticación, permisos por rol, transiciones de estado (incluyendo No Realizado y el rechazo de `reprogramado` como estado inválido), bloqueo optimista, reasignación con registro de historial, recurrencia idempotente, y validaciones de API (rangos de coordenadas, recursos inexistentes, superposición de agenda).
 - Migraciones incrementales de base de datos (`db/migrations/`).
 - Deployment funcionando: frontend y backend en Render, base de datos en Neon (ver sección "Deployment" más abajo).
 
