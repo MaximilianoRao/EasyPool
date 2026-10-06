@@ -36,11 +36,11 @@ export async function crearClienteConUbicacion(tokenAdmin: string) {
   return { cliente: clienteResp.body, ubicacion: ubicacionResp.body };
 }
 
-export async function crearServicioDePrueba(tokenAdmin: string, ubicacionId: number) {
+export async function crearServicioDePrueba(tokenAdmin: string, ubicacionId: number, duracionMinutos = 60) {
   const respuesta = await request(app)
     .post('/servicios')
     .set('Authorization', `Bearer ${tokenAdmin}`)
-    .send({ ubicacion_id: ubicacionId, fecha_hora: '2026-10-01T10:00:00' });
+    .send({ ubicacion_id: ubicacionId, fecha_hora: '2026-10-01T10:00:00', duracion_minutos: duracionMinutos });
   return respuesta.body;
 }
 

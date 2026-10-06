@@ -189,4 +189,58 @@ describe('Transiciones de estado y bloqueo optimista', () => {
     await borrarClienteCompleto(cliente.id);
   });
 
+    it('no permite asignar un técnico si se superpone con otro servicio ya asignado', async () => {
+    const { cliente, ubicacion } = await crearClienteConUbicacion(tokenAdmin);
+    const tecnicoResultado = await pool.query('SELECT id FROM usuario WHERE email = $1', [emailTecnico]);
+    const tecnicoId = tecnicoResultado.rows[0].id;
+
+    const servicio1Resp = await request(app)
+      .post('/servicios')
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send({ ubicacion_id: ubicacion.id, fecha_hora: '2026-10-20T10:00:00', duracion_minutos: 60 });
+
+    const servicio2Resp = await request(app)
+      .post('/servicios')
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send({ ubicacion_id: ubicacion.id, fecha_hora: '2026-10-20T10:30:00', duracion_minutos: 60 });
+
+    await asignarTecnicoDePrueba(tokenAdmin, servicio1Resp.body.id, tecnicoId, servicio1Resp.body.version);
+
+    const respuesta = await request(app)
+      .patch(`/servicios/${servicio2Resp.body.id}/asignar`)
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send({ tecnico_id: tecnicoId, version: servicio2Resp.body.version });
+
+    expect(respuesta.status).toBe(409);
+
+    await borrarClienteCompleto(cliente.id);
+  });
+
+  it('permite asignar al mismo técnico dos servicios que NO se superponen', async () => {
+    const { cliente, ubicacion } = await crearClienteConUbicacion(tokenAdmin);
+    const tecnicoResultado = await pool.query('SELECT id FROM usuario WHERE email = $1', [emailTecnico]);
+    const tecnicoId = tecnicoResultado.rows[0].id;
+
+    const servicio1Resp = await request(app)
+      .post('/servicios')
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send({ ubicacion_id: ubicacion.id, fecha_hora: '2026-10-21T10:00:00', duracion_minutos: 60 });
+
+    const servicio2Resp = await request(app)
+      .post('/servicios')
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send({ ubicacion_id: ubicacion.id, fecha_hora: '2026-10-21T11:00:00', duracion_minutos: 60 });
+
+    await asignarTecnicoDePrueba(tokenAdmin, servicio1Resp.body.id, tecnicoId, servicio1Resp.body.version);
+
+    const respuesta = await request(app)
+      .patch(`/servicios/${servicio2Resp.body.id}/asignar`)
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send({ tecnico_id: tecnicoId, version: servicio2Resp.body.version });
+
+    expect(respuesta.status).toBe(200);
+
+    await borrarClienteCompleto(cliente.id);
+  });
+
 });

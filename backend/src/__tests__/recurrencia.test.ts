@@ -36,7 +36,7 @@ describe('Recurrencia de servicios (Planes de Mantenimiento)', () => {
     const respuesta = await request(app)
       .post('/planes-mantenimiento')
       .set('Authorization', `Bearer ${tokenAdmin}`)
-      .send({ ubicacion_id: ubicacionId, frecuencia: 'semanal', fecha_inicio: '2026-10-06T09:00:00' });
+      .send({ ubicacion_id: ubicacionId, frecuencia: 'semanal', fecha_inicio: '2026-10-06T09:00:00', duracion_minutos: 60 });
 
     expect(respuesta.status).toBe(201);
     expect(respuesta.body.frecuencia).toBe('semanal');
