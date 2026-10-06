@@ -5,6 +5,7 @@ import { pool } from './db';
 import { verificarToken, verificarRol, RequestConUsuario } from './middleware/auth';
 import cors from 'cors';
 import { generarServiciosDesdePlanes } from './recurrencia';
+import { haySuperposicion } from './agenda';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -136,23 +137,28 @@ app.get('/clientes/:id/ubicaciones', verificarToken, verificarRol('administrador
 });
 
 app.post('/servicios', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
+  const { ubicacion_id, fecha_hora, duracion_minutos } = req.body;
 
-  const { ubicacion_id, fecha_hora } = req.body;
+  if (!ubicacion_id || !fecha_hora || !duracion_minutos) {
+    res.status(400).json({ error: 'La ubicación, la fecha y la duración son obligatorias' });
+    return;
+  }
 
-  if (!ubicacion_id || !fecha_hora) {
-    res.status(400).json({ error: 'La ubicación y la fecha son obligatorias' });
+  if (duracion_minutos <= 0) {
+    res.status(400).json({ error: 'La duración debe ser mayor a cero' });
     return;
   }
 
   try {
-    const resultado = await pool.query(`INSERT INTO servicio (ubicacion_id, fecha_hora) VALUES ($1, $2) RETURNING *`, [ubicacion_id, fecha_hora]);
+    const resultado = await pool.query(
+      `INSERT INTO servicio (ubicacion_id, fecha_hora, duracion_minutos) VALUES ($1, $2, $3) RETURNING *`,
+      [ubicacion_id, fecha_hora, duracion_minutos]
+    );
     res.status(201).json(resultado.rows[0]);
-
   } catch (error) {
     console.error('Error al crear servicio', error);
     res.status(500).json({ error: 'Error al crear servicio' });
   }
-
 });
 
 app.patch('/servicios/:id/asignar', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
@@ -195,6 +201,12 @@ app.patch('/servicios/:id/asignar', verificarToken, verificarRol('administrador'
     const estadosAsignables = ['pendiente', 'en_camino'];
     if (!estadosAsignables.includes(servicio.estado)) {
       res.status(400).json({ error: `No se puede reasignar un servicio en estado ${servicio.estado}` });
+      return;
+    }
+
+    const superposicion = await haySuperposicion(tecnico_id, servicio.fecha_hora, servicio.duracion_minutos, servicio.id);
+    if (superposicion) {
+      res.status(409).json({ error: 'El técnico ya tiene un servicio asignado que se superpone con este horario' });
       return;
     }
 
@@ -398,6 +410,14 @@ app.patch('/servicios/:id/reprogramar', verificarToken, verificarRol('administra
       return;
     }
 
+    if (servicio.tecnico_id) {
+      const superposicion = await haySuperposicion(servicio.tecnico_id, fecha_hora, servicio.duracion_minutos, servicio.id);
+      if (superposicion) {
+        res.status(409).json({ error: 'La nueva fecha se superpone con otro servicio del técnico asignado' });
+        return;
+      }
+    }
+
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
@@ -448,10 +468,10 @@ app.get('/servicios', verificarToken, verificarRol('administrador'), async (req:
 });
 
 app.post('/planes-mantenimiento', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
-  const { ubicacion_id, frecuencia, fecha_inicio } = req.body;
+  const { ubicacion_id, frecuencia, fecha_inicio, duracion_minutos } = req.body;
 
-  if (!ubicacion_id || !frecuencia || !fecha_inicio) {
-    res.status(400).json({ error: 'ubicacion_id, frecuencia y fecha_inicio son obligatorios' });
+  if (!ubicacion_id || !frecuencia || !fecha_inicio || !duracion_minutos) {
+    res.status(400).json({ error: 'ubicacion_id, frecuencia, fecha_inicio y duracion_minutos son obligatorios' });
     return;
   }
 
@@ -462,9 +482,9 @@ app.post('/planes-mantenimiento', verificarToken, verificarRol('administrador'),
 
   try {
     const resultado = await pool.query(
-      `INSERT INTO plan_mantenimiento (ubicacion_id, frecuencia, fecha_inicio, proxima_generacion, activo)
-       VALUES ($1, $2, $3, $3, true) RETURNING *`,
-      [ubicacion_id, frecuencia, fecha_inicio]
+      `INSERT INTO plan_mantenimiento (ubicacion_id, frecuencia, fecha_inicio, proxima_generacion, duracion_minutos, activo)
+       VALUES ($1, $2, $3, $3, $4, true) RETURNING *`,
+      [ubicacion_id, frecuencia, fecha_inicio, duracion_minutos]
     );
     res.status(201).json(resultado.rows[0]);
   } catch (error) {

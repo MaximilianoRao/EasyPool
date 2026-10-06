@@ -35,6 +35,7 @@ function AdminPanel({
   const [tecnicos, setTecnicos] = useState<any[]>([]);
   const [tecnicoSeleccionado, setTecnicoSeleccionado] = useState('');
   const [mensajeServicio, setMensajeServicio] = useState('');
+  const [duracionMinutos, setDuracionMinutos] = useState('60');
 
   useEffect(() => {
     obtenerTecnicos(token).then(setTecnicos).catch(console.error);
@@ -75,7 +76,7 @@ function AdminPanel({
     setMensajeServicio('');
 
     try {
-      const servicio = await crearServicio(token, Number(ubicacionSeleccionada), fechaHora);
+      const servicio = await crearServicio(token, Number(ubicacionSeleccionada), fechaHora, Number(duracionMinutos));
 
       if (tecnicoSeleccionado) {
         await asignarTecnico(token, servicio.id, Number(tecnicoSeleccionado), servicio.version);
@@ -85,6 +86,7 @@ function AdminPanel({
       onServicioCreado();
       setClienteSeleccionado('');
       setFechaHora('');
+      setDuracionMinutos('60');
       setTecnicoSeleccionado('');
     } catch (err) {
       setMensajeServicio('Ocurrió un error al crear el servicio.');
@@ -147,6 +149,15 @@ function AdminPanel({
             onChange={(e) => setFechaHora(e.target.value)}
             required
           />
+        </div>
+        <div>
+          <label>Duración (minutos): </label>
+          <input
+            type="number"
+            value={duracionMinutos}
+            onChange={(e) => setDuracionMinutos(e.target.value)}
+            required
+            />
         </div>
         <div>
           <label>Técnico (opcional): </label>

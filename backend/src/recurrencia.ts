@@ -29,11 +29,11 @@ export async function generarServiciosDesdePlanes(horizonteDias = 30) {
 
     while (proxima <= limite) {
       const insertado = await pool.query(
-        `INSERT INTO servicio (ubicacion_id, plan_id, fecha_hora)
-         VALUES ($1, $2, $3)
+        `INSERT INTO servicio (ubicacion_id, plan_id, fecha_hora, duracion_minutos)
+         VALUES ($1, $2, $3, $4)
          ON CONFLICT (plan_id, fecha_hora) DO NOTHING
          RETURNING id`,
-        [plan.ubicacion_id, plan.id, proxima]
+        [plan.ubicacion_id, plan.id, proxima, plan.duracion_minutos]
       );
 
       if ((insertado.rowCount ?? 0) > 0) totalGenerados++;

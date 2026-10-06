@@ -82,11 +82,11 @@ export async function obtenerTecnicos(token: string) {
   return respuesta.json();
 }
 
-export async function crearServicio(token: string, ubicacionId: number, fechaHora: string) {
+export async function crearServicio(token: string, ubicacionId: number, fechaHora: string, duracionMinutos: number) {
   const respuesta = await fetch(`${API_URL}/servicios`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ ubicacion_id: ubicacionId, fecha_hora: fechaHora }),
+    body: JSON.stringify({ ubicacion_id: ubicacionId, fecha_hora: fechaHora, duracion_minutos: duracionMinutos }),
   });
   if (!respuesta.ok) throw new Error('No se pudo crear el servicio');
   return respuesta.json();
