@@ -74,4 +74,36 @@ describe('Permisos por rol', () => {
     expect(respuesta.status).toBe(403);
   });
 
+    it('rechaza crear una ubicación con latitud fuera de rango', async () => {
+    const clienteResp = await request(app)
+      .post('/clientes')
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send({ nombre: 'Cliente validación' });
+
+    const respuesta = await request(app)
+      .post(`/clientes/${clienteResp.body.id}/ubicaciones`)
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send({ direccion: 'Calle falsa 123', latitud: 200, longitud: -64 });
+
+    expect(respuesta.status).toBe(400);
+    await pool.query('DELETE FROM cliente WHERE id = $1', [clienteResp.body.id]);
+  });
+
+  it('devuelve 404 al consultar un cliente que no existe', async () => {
+    const respuesta = await request(app)
+      .get('/clientes/999999')
+      .set('Authorization', `Bearer ${tokenAdmin}`);
+
+    expect(respuesta.status).toBe(404);
+  });
+
+  it('devuelve 404 al crear un servicio con una ubicación inexistente', async () => {
+    const respuesta = await request(app)
+      .post('/servicios')
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send({ ubicacion_id: 999999, fecha_hora: '2026-10-25T10:00:00', duracion_minutos: 60 });
+
+    expect(respuesta.status).toBe(404);
+  });
+
 });

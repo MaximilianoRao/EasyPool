@@ -19,6 +19,17 @@ function App() {
     }
   }, [token]);
 
+  useEffect(() => {
+    function alVolverElFoco() {
+      if (token) {
+        cargarClientes(token);
+        cargarServicios(token);
+      }
+   }
+    window.addEventListener('focus', alVolverElFoco);
+    return () => window.removeEventListener('focus', alVolverElFoco);
+  }, [token]);
+
 async function handleLogin(e: React.FormEvent) {
   e.preventDefault();
   setError('');

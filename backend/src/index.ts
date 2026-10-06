@@ -64,6 +64,11 @@ app.get('/clientes/:id', verificarToken, verificarRol('administrador'), async (r
   try {
     const resultado = await pool.query('SELECT * FROM cliente WHERE id = $1', [id]);
 
+    if (resultado.rowCount === 0) {
+      res.status(404).json({ error: 'Cliente no encontrado' });
+      return;
+    }
+
     res.json(resultado.rows[0]);
   } catch (error) {
     console.error('Error al consultar cliente', error);
@@ -97,7 +102,6 @@ app.post('/clientes', verificarToken, verificarRol('administrador'), async (req:
 });
 
 app.post('/clientes/:id/ubicaciones', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
-
   const { id } = req.params;
   const { direccion, latitud, longitud } = req.body;
 
@@ -106,15 +110,34 @@ app.post('/clientes/:id/ubicaciones', verificarToken, verificarRol('administrado
     return;
   }
 
+  if (latitud === undefined || longitud === undefined) {
+    res.status(400).json({ error: 'La latitud y la longitud son obligatorias' });
+    return;
+  }
+
+  if (latitud < -90 || latitud > 90) {
+    res.status(400).json({ error: 'La latitud debe estar entre -90 y 90' });
+    return;
+  }
+
+  if (longitud < -180 || longitud > 180) {
+    res.status(400).json({ error: 'La longitud debe estar entre -180 y 180' });
+    return;
+  }
+
   try {
+    const clienteResultado = await pool.query('SELECT id FROM cliente WHERE id = $1', [id]);
+    if (clienteResultado.rowCount === 0) {
+      res.status(404).json({ error: 'Cliente no encontrado' });
+      return;
+    }
+
     const resultado = await pool.query(`INSERT INTO ubicacion(cliente_id, direccion, latitud, longitud) VALUES ($1, $2, $3, $4) RETURNING *`, [id, direccion, latitud, longitud]);
     res.status(201).json(resultado.rows[0]);
-    
   } catch (error) {
     console.error('Error al crear ubicación', error);
     res.status(500).json({ error: 'Error al crear ubicación' });
   }
-
 });
 
 app.get('/clientes/:id/ubicaciones', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
@@ -150,6 +173,12 @@ app.post('/servicios', verificarToken, verificarRol('administrador'), async (req
   }
 
   try {
+    const ubicacionResultado = await pool.query('SELECT id FROM ubicacion WHERE id = $1', [ubicacion_id]);
+    if (ubicacionResultado.rowCount === 0) {
+      res.status(404).json({ error: 'Ubicación no encontrada' });
+      return;
+    }
+
     const resultado = await pool.query(
       `INSERT INTO servicio (ubicacion_id, fecha_hora, duracion_minutos) VALUES ($1, $2, $3) RETURNING *`,
       [ubicacion_id, fecha_hora, duracion_minutos]
@@ -480,7 +509,18 @@ app.post('/planes-mantenimiento', verificarToken, verificarRol('administrador'),
     return;
   }
 
+  if (duracion_minutos <= 0) {
+    res.status(400).json({ error: 'La duración debe ser mayor a cero' });
+    return;
+  }
+
   try {
+    const ubicacionResultado = await pool.query('SELECT id FROM ubicacion WHERE id = $1', [ubicacion_id]);
+    if (ubicacionResultado.rowCount === 0) {
+      res.status(404).json({ error: 'Ubicación no encontrada' });
+      return;
+    }
+
     const resultado = await pool.query(
       `INSERT INTO plan_mantenimiento (ubicacion_id, frecuencia, fecha_inicio, proxima_generacion, duracion_minutos, activo)
        VALUES ($1, $2, $3, $3, $4, true) RETURNING *`,
