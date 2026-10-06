@@ -361,6 +361,9 @@ erDiagram
         int ubicacion_id
         string frecuencia
         string dia_preferido
+        timestamp fecha_inicio
+        timestamp proxima_generacion
+        int duracion_minutos
         boolean activo
     }
     SERVICIO {
@@ -369,9 +372,14 @@ erDiagram
         int plan_id
         int tecnico_id
         string estado
-        datetime fecha
+        string motivo_no_realizado
+        int duracion_minutos
+        int version
+        datetime fecha_hora
     }
 ```
+>`fecha_inicio` y `proxima_generacion` en Plan de Mantenimiento son el ancla temporal que permite generar servicios de forma determinística e idempotente (correr el generador más de una vez no crea duplicados, protegido además por una restricción `UNIQUE (plan_id, fecha_hora)` en la base). `duracion_minutos` en Servicio (y su equivalente en Plan de Mantenimiento, heredado por los servicios que genera) permite detectar superposiciones en la agenda de un mismo técnico.
+
 - **Cliente**: datos de contacto y facturación (nombre, teléfono, dirección de facturación si aplica).
 - **Ubicación/Piscina**: pertenece a un cliente; tiene su propia dirección y coordenadas (lat/long); es el lugar real hacia el que se calcula la ruta. Un cliente puede tener más de una.
 - **Servicio**: referencia a una Ubicación (no directamente al Cliente). El cliente se obtiene indirectamente a través de la ubicación.
@@ -390,22 +398,6 @@ A partir de este supuesto, se decide diferenciar entre el **plan de mantenimient
 
 ### Reglas de Estado
 
-**Estados del servicio**
-
-
-| Desde | Hacia | Quién |
-|---|---|---|
-| Pendiente | En camino | Técnico |
-| En camino | En servicio | Técnico |
-| En camino | No realizado | Técnico (requiere motivo) |
-| En servicio | Finalizado | Técnico |
-| En servicio | No realizado | Técnico (requiere motivo) |
-| Pendiente / En camino | Cancelado | Administrador |
-| Pendiente / En camino / No realizado | Reprogramado (acción → vuelve a Pendiente) | Administrador |
-| Pendiente / En camino | Reasignado (acción → vuelve a Pendiente) | Administrador |
-
-> "Reprogramado" y "Reasignado" no son estados del servicio — son acciones que generan un evento en `historial_estado` y devuelven el servicio a "Pendiente". Esto evita mantener dos modelos distintos entre documentación, base de datos y código.4
-
 **Tabla de transiciones**
 
 | Desde | Hacia | Quién | Notas |
@@ -413,30 +405,26 @@ A partir de este supuesto, se decide diferenciar entre el **plan de mantenimient
 | Pendiente | En camino | Técnico | — |
 | En camino | En servicio | Técnico | — |
 | En servicio | Finalizado | Técnico | — |
-| En camino / En servicio | **No Realizado** | Técnico | Requiere seleccionar un motivo (ver abajo) |
-| Pendiente / En camino | Cancelado | Administrador | Antes de que el técnico llegue |
-| Pendiente / En camino / En servicio | Reprogramado | Administrador | Reagenda a nueva fecha/hora |
-| Cualquiera (excepto Finalizado / Cancelado) | Pendiente | Administrador | Reasignación a otro técnico |
+| En camino / En servicio | No Realizado | Técnico | Requiere motivo |
+| Pendiente / En camino / No Realizado | Cancelado | Administrador | — |
+| Pendiente / En camino / No Realizado | Pendiente (reprogramación) | Administrador | Nueva fecha/hora; no se superpone con otro servicio del técnico asignado |
+| Pendiente / En camino | Pendiente (reasignación) | Administrador | Nuevo técnico; no se superpone con la agenda del técnico nuevo |
 
-**"No Realizado" — cuando el técnico llega pero no puede brindar el servicio**
+**"Reprogramado" y "Reasignado" no son estados del servicio** — son acciones administrativas que devuelven el servicio a "Pendiente" y quedan registradas como eventos en `historial_estado` (con `fecha_anterior`/`fecha_nueva` para reprogramaciones, `tecnico_anterior_id`/`tecnico_nuevo_id` para reasignaciones). Esto evita mantener dos modelos distintos entre documentación, base de datos y código.
 
-Desde "En camino" o "En servicio", el técnico tiene la opción de marcar el servicio como **No Realizado**, indicando un motivo de una lista predefinida (ej. cliente ausente, sin acceso a la piscina, condiciones climáticas, otro con campo de texto libre).
-
-Al marcarse como No Realizado:
-
-- el servicio queda con ese estado y el motivo registrado (no se pierde el intento);
-- se genera una notificación para el administrador, indicando que ese servicio quedó pendiente de reagendar;
-- el administrador es quien decide el paso siguiente: reprogramarlo a una nueva fecha (pasa a **Reprogramado**) o, si corresponde, cancelarlo definitivamente.
-
-Esta distinción es importante: "Cancelado" implica que el servicio no se va a realizar (decisión del administrador, generalmente antes de que el técnico salga), mientras que "No Realizado" implica que **hubo un intento real** que no pudo completarse, y necesita seguimiento activo del administrador — son dos situaciones operativas distintas y no deberían compartir el mismo estado.
+**"No Realizado"** representa un intento real del técnico que no pudo completarse (requiere motivo). El administrador decide el siguiente paso: reprogramar o cancelar.
 
 **Historial**
 
-Cada cambio de estado se registra en una tabla `historial_estado` (`servicio_id`, `estado_anterior`, `estado_nuevo`, `actor`, `motivo` opcional, `timestamp`), en vez de sobrescribir el campo `estado` del servicio. El servicio mantiene su estado actual, pero ningún cambio anterior se borra — esto permite reconstruir, por ejemplo, cuántas veces un servicio pasó por "No Realizado" antes de completarse.
+Cada cambio de estado, reprogramación y reasignación se registra en `historial_estado` (`servicio_id`, `estado_anterior`, `estado_nuevo`, `actor_id`, `motivo`, `tecnico_anterior_id`, `tecnico_nuevo_id`, `fecha_anterior`, `fecha_nueva`, `timestamp`), sin sobrescribir el estado del servicio. Permite reconstruir cambios de estado, reprogramaciones, reasignaciones y cancelaciones de forma estructurada.
 
 **Concurrencia**
 
-Para evitar que el administrador reasigne un servicio mientras el técnico lo está actualizando al mismo tiempo, se usará **bloqueo optimista**: el servicio tiene un campo `version` (o `updated_at`), y toda actualización debe incluir la versión leída por el cliente. Si no coincide con la versión actual en el backend, la actualización se rechaza y el cliente debe refrescar y reintentar. Es una solución simple y suficiente para una escala de 5 técnicos.
+Toda operación que modifica un servicio (cambio de estado, cancelación, reprogramación, asignación) usa bloqueo optimista mediante el campo `version`: se exige la versión leída por el cliente, el `UPDATE` incluye `WHERE version = $X`, y se verifica `rowCount` tras la operación — si es 0, se responde `409 Conflict`. El cambio de estado/cancelación/reprogramación/asignación y su registro en `historial_estado` ocurren dentro de la misma transacción de base de datos.
+
+**Superposición de agenda**
+
+Al asignar o reprogramar un servicio con técnico asignado, el backend verifica que el nuevo horario (considerando `duracion_minutos`) no se superponga con otro servicio activo (`pendiente`, `en_camino`, `en_servicio`) del mismo técnico. Si hay superposición, responde `409 Conflict`.
 
 ### Módulos Principales
 
@@ -448,6 +436,10 @@ Para evitar que el administrador reasigne un servicio mientras el técnico lo es
 - **Rutas**: cálculo de orden de visita por distancia entre ubicaciones asignadas a un técnico.
 - **Ubicación y Evidencia**: registro de coordenadas y evidencia del servicio en los momentos definidos (En servicio / Finalizado / No Realizado).
 - **Notificaciones**: aviso dentro de la aplicación ante cambios relevantes (reasignación, cancelación, No Realizado).
+
+### Autorización
+
+Todos los endpoints exigen autenticación (JWT). Los de escritura y los de consulta que exponen datos de clientes, ubicaciones o el total de servicios están restringidos a rol `administrador`. El técnico solo puede consultar (`/mis-servicios`) y modificar (`/servicios/:id/estado`) los servicios que tiene asignados — nunca puede recorrer IDs ni acceder a servicios, clientes o ubicaciones ajenos, incluso usando la API directamente sin pasar por la interfaz.
 
 ### Entregables por etapa
 ---
