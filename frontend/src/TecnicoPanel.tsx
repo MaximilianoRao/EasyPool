@@ -28,6 +28,18 @@ function TecnicoPanel({ token }: { token: string }) {
 
   useEffect(() => {
     cargar();
+
+    function actualizarAlVolver() {
+      if (!document.hidden) cargar();
+    }
+
+    window.addEventListener('focus', actualizarAlVolver);
+    document.addEventListener('visibilitychange', actualizarAlVolver);
+
+    return () => {
+      window.removeEventListener('focus', actualizarAlVolver);
+      document.removeEventListener('visibilitychange', actualizarAlVolver);
+    };
   }, [token]);
 
   async function handleCambiarEstado(servicio: any) {
