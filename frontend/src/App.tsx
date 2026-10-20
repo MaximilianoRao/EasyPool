@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { login, obtenerClientes, obtenerServicios} from './api';
 import AdminPanel from './AdminPanel';
 import TecnicoPanel from './TecnicoPanel';
+import PlanesPanel from './PlanesPanel';
 
 function App() {
   const [email, setEmail] = useState('');
@@ -92,6 +93,12 @@ async function handleLogin(e: React.FormEvent) {
               clientes={clientes}
               onClienteCreado={() => cargarClientes(token)}
               onServicioCreado={() => cargarServicios(token)}
+            />
+
+            <PlanesPanel
+              token={token}
+              clientes={clientes}
+              onServiciosGenerados={() => cargarServicios(token)}
             />
 
             <h2>Clientes</h2>

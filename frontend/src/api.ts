@@ -148,3 +148,71 @@ export async function cambiarEstado(token: string, servicioId: number, estado: s
 
   return respuesta.json();
 }
+
+
+export async function guardarObservaciones(token: string, servicioId: number, observaciones: string) {
+  const respuesta = await fetch(`${API_URL}/servicios/${servicioId}/observaciones`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ observaciones }),
+  });
+
+  if (!respuesta.ok) {
+    const datos = await respuesta.json().catch(() => ({}));
+    throw new Error(datos.error || 'No se pudieron guardar las observaciones');
+  }
+
+  return respuesta.json();
+}
+
+export async function obtenerPlanes(token: string) {
+  const respuesta = await fetch(`${API_URL}/planes-mantenimiento`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!respuesta.ok) throw new Error('No se pudieron obtener los planes');
+  return respuesta.json();
+}
+
+export async function crearPlan(
+  token: string,
+  ubicacionId: number,
+  frecuencia: string,
+  fechaInicio: string,
+  duracionMinutos: number
+) {
+  const respuesta = await fetch(`${API_URL}/planes-mantenimiento`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({
+      ubicacion_id: ubicacionId,
+      frecuencia,
+      fecha_inicio: fechaInicio,
+      duracion_minutos: duracionMinutos,
+    }),
+  });
+
+  if (!respuesta.ok) {
+    const datos = await respuesta.json().catch(() => ({}));
+    throw new Error(datos.error || 'No se pudo crear el plan');
+  }
+
+  return respuesta.json();
+}
+
+export async function cambiarEstadoPlan(token: string, planId: number, accion: 'pausar' | 'reactivar') {
+  const respuesta = await fetch(`${API_URL}/planes-mantenimiento/${planId}/${accion}`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!respuesta.ok) throw new Error('No se pudo actualizar el plan');
+  return respuesta.json();
+}
+
+export async function generarServicios(token: string) {
+  const respuesta = await fetch(`${API_URL}/planes-mantenimiento/generar`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!respuesta.ok) throw new Error('No se pudieron generar los servicios');
+  return respuesta.json();
+}

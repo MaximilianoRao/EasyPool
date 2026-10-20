@@ -426,6 +426,9 @@ Toda operación que modifica un servicio (cambio de estado, cancelación, reprog
 
 Al asignar o reprogramar un servicio con técnico asignado, el backend verifica que el nuevo horario (considerando `duracion_minutos`) no se superponga con otro servicio activo (`pendiente`, `en_camino`, `en_servicio`) del mismo técnico. Si hay superposición, responde `409 Conflict`.
 
+Los horarios de agenda de los servicios (`fecha_hora`, `fecha_anterior`, `fecha_nueva`) se manejan como hora local de la empresa, sin conversiones de zona horaria: lo que carga el administrador es lo que ve el técnico. Los instantes en que ocurren los eventos del historial (`historial_estado.timestamp`) se guardan como momento absoluto (`TIMESTAMPTZ`), de modo que se muestran correctamente en cualquier zona horaria.
+
+
 ### Módulos Principales
 
 - **Autenticación y Roles**: login, sesión, permisos diferenciados por rol (Administrador / Técnico).

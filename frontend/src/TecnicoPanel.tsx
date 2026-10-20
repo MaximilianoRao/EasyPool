@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { obtenerMisServicios, cambiarEstado, marcarNoRealizado } from './api';
+import { obtenerMisServicios, cambiarEstado, marcarNoRealizado, guardarObservaciones } from './api';
 
 const siguienteEstado: Record<string, string> = {
   pendiente: 'en_camino',
@@ -16,6 +16,7 @@ const textoBoton: Record<string, string> = {
 function TecnicoPanel({ token }: { token: string }) {
   const [servicios, setServicios] = useState<any[]>([]);
   const [error, setError] = useState('');
+  const [soloHoy, setSoloHoy] = useState(true);
 
   async function cargar() {
     try {
@@ -70,15 +71,38 @@ function TecnicoPanel({ token }: { token: string }) {
     }
   }
 
+  async function handleObservaciones(servicio: any) {
+    setError('');
+    const texto = window.prompt('Observaciones del servicio:', servicio.observaciones || '');
+    if (texto === null) return;
+
+    try {
+      await guardarObservaciones(token, servicio.id, texto);
+      await cargar();
+    } catch (err: any) {
+      setError(err.message || 'No se pudieron guardar las observaciones');
+    }
+  }
+
+  function esHoy(fechaHora: string) {
+  return new Date(fechaHora).toDateString() === new Date().toDateString();
+  }
+
+  const serviciosVisibles = soloHoy ? servicios.filter((s) => esHoy(s.fecha_hora)) : servicios;
+
   return (
     <div>
       <h2>Mis Servicios</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      {servicios.length === 0 ? (
-        <p>No tenés servicios asignados todavía.</p>
+      <label>
+          <input type="checkbox" checked={soloHoy} onChange={(e) => setSoloHoy(e.target.checked)} />
+          {' '}Solo servicios de hoy
+      </label>
+      {serviciosVisibles.length === 0 ? (
+        <p>No tenés servicios para mostrar.</p>
       ) : (
         <ul>
-          {servicios.map((s) => (
+          {serviciosVisibles.map((s) => (
             <li key={s.id} style={{ marginBottom: '16px' }}>
               <strong>{s.cliente_nombre}</strong> — {s.direccion}
               <br />
@@ -95,6 +119,12 @@ function TecnicoPanel({ token }: { token: string }) {
               {(s.estado === 'en_camino' || s.estado === 'en_servicio') && (
                 <button onClick={() => handleNoRealizado(s)} style={{ marginLeft: '10px' }}>
                   No realizado
+                </button>
+              )}
+              {s.observaciones && <p>Observaciones: {s.observaciones}</p>}
+              {s.estado !== 'pendiente' && s.estado !== 'cancelado' && (
+                <button onClick={() => handleObservaciones(s)} style={{ marginLeft: '10px' }}>
+                  Observaciones
                 </button>
               )}
             </li>

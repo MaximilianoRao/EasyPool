@@ -1,0 +1,1 @@
+ALTER TABLE servicio ADD COLUMN observaciones TEXT;
