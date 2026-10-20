@@ -276,22 +276,25 @@ app.patch('/servicios/:id/asignar', verificarToken, verificarRol('administrador'
 });
 
 app.get('/mis-servicios', verificarToken, verificarRol('tecnico'), async (req: RequestConUsuario, res: Response) => {
-
   const tecnicoId = req.usuario?.id;
 
   try {
     const resultado = await pool.query(
-      'SELECT * FROM servicio WHERE tecnico_id = $1',
+      `SELECT s.*, u.direccion, u.latitud, u.longitud,
+              c.nombre AS cliente_nombre, c.telefono AS cliente_telefono
+       FROM servicio s
+       JOIN ubicacion u ON u.id = s.ubicacion_id
+       JOIN cliente c ON c.id = u.cliente_id
+       WHERE s.tecnico_id = $1
+       ORDER BY s.fecha_hora`,
       [tecnicoId]
     );
 
     res.json(resultado.rows);
-
   } catch (error) {
     console.error('Error al consultar servicios del técnico', error);
     res.status(500).json({ error: 'Error al consultar servicios' });
   }
-
 });
 
 app.patch('/servicios/:id/estado', verificarToken, verificarRol('tecnico'), async (req: RequestConUsuario, res: Response) => {

@@ -13,22 +13,23 @@ function App() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (token) {
-    cargarClientes(token);
-    cargarServicios(token);
+    if (token && rol === 'administrador') {
+      cargarClientes(token);
+      cargarServicios(token);
     }
-  }, [token]);
+  }, [token, rol]);
 
   useEffect(() => {
     function alVolverElFoco() {
-      if (token) {
+      if (token && rol === 'administrador') {
         cargarClientes(token);
         cargarServicios(token);
       }
-   }
-    window.addEventListener('focus', alVolverElFoco);
-    return () => window.removeEventListener('focus', alVolverElFoco);
-  }, [token]);
+    }
+
+  window.addEventListener('focus', alVolverElFoco);
+  return () => window.removeEventListener('focus', alVolverElFoco);
+}, [token, rol]);
 
 async function handleLogin(e: React.FormEvent) {
   e.preventDefault();
@@ -40,8 +41,10 @@ async function handleLogin(e: React.FormEvent) {
     setRol(rolObtenido);
     localStorage.setItem('token', tokenObtenido);
     localStorage.setItem('rol', rolObtenido);
-    await cargarClientes(tokenObtenido);
-    await cargarServicios(tokenObtenido);
+    if (rolObtenido === 'administrador') {
+      await cargarClientes(tokenObtenido);
+      await cargarServicios(tokenObtenido);
+    }
   } catch (err) {
     setError('No se pudo iniciar sesión. Revisá el email y la contraseña.');
   }
@@ -81,40 +84,44 @@ async function handleLogin(e: React.FormEvent) {
         <h1>EasyPool</h1>
         <p>Sesión iniciada correctamente.</p>
         <button onClick={handleLogout}>Cerrar sesión</button>
-        {rol === 'administrador' && (
-          <AdminPanel
-            token={token}
-            clientes={clientes}
-            onClienteCreado={() => cargarClientes(token)}
-            onServicioCreado={() => cargarServicios(token)}
-          />
-        )}
-        {rol === 'tecnico' && (
-          <TecnicoPanel token={token} />
-        )}
-        <h2>Clientes</h2>
-        {clientes.length === 0 ? (
-          <p>No hay clientes cargados todavía.</p>
-        ) : (
-          <ul>
-            {clientes.map((c) => (
-              <li key={c.id}>{c.nombre}</li>
-            ))}
-          </ul>
-        )}
-        <h2>Servicios</h2>
-        {servicios.length === 0 ? (
-        <p>No hay servicios cargados todavía.</p>
-        ) : (
-        <ul>
-          {servicios.map((s) => (
-          <li key={s.id}>
-            {s.fecha_hora} — estado: {s.estado} {s.tecnico_id ? `— técnico #${s.tecnico_id}` : '(sin asignar)'}
-          </li>
-          ))}
-        </ul>
-)}
 
+        {rol === 'administrador' && (
+          <>
+            <AdminPanel
+              token={token}
+              clientes={clientes}
+              onClienteCreado={() => cargarClientes(token)}
+              onServicioCreado={() => cargarServicios(token)}
+            />
+
+            <h2>Clientes</h2>
+            {clientes.length === 0 ? (
+              <p>No hay clientes cargados todavía.</p>
+            ) : (
+              <ul>
+                {clientes.map((c) => (
+                  <li key={c.id}>{c.nombre}</li>
+                ))}
+              </ul>
+            )}
+
+            <h2>Servicios</h2>
+            {servicios.length === 0 ? (
+              <p>No hay servicios cargados todavía.</p>
+            ) : (
+              <ul>
+                {servicios.map((s) => (
+                  <li key={s.id}>
+                    {s.fecha_hora} — estado: {s.estado}{' '}
+                    {s.tecnico_id ? `— técnico #${s.tecnico_id}` : '(sin asignar)'}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
+
+        {rol === 'tecnico' && <TecnicoPanel token={token} />}
       </div>
     );
   }
