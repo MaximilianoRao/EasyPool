@@ -1,0 +1,1 @@
+ALTER TABLE plan_mantenimiento DROP COLUMN IF EXISTS dia_preferido;

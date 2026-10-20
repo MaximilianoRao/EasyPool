@@ -360,7 +360,6 @@ erDiagram
         int id
         int ubicacion_id
         string frecuencia
-        string dia_preferido
         timestamp fecha_inicio
         timestamp proxima_generacion
         int duracion_minutos
@@ -391,7 +390,7 @@ Dado que el equipo no cuenta con acceso a la empresa real, no es posible relevar
 
 A partir de este supuesto, se decide diferenciar entre el **plan de mantenimiento** (la programación recurrente) y el **servicio** (cada visita concreta que ese plan genera), en lugar de que el administrador deba crear manualmente cada visita todas las semanas.
 
-- **PlanDeMantenimiento**: asociado a una Ubicación. Define la frecuencia (semanal / quincenal / mensual) y el día preferido de visita. El sistema genera automáticamente las instancias de Servicio futuras a partir de este plan.
+- **PlanDeMantenimiento**: asociado a una Ubicación. Define la frecuencia (semanal / quincenal / mensual), la duración estimada y la fecha y hora de la primera visita (`fecha_inicio`), de la que se derivan el día de la semana y el horario de todas las visitas siguientes. No existe un "día preferido" aparte: el ancla temporal ya lo determina.
 - **Servicio**: sigue siendo la visita concreta. Puede tener un `plan_id` opcional: si el servicio fue generado por un plan, lo referencia; si es una visita puntual (fuera de un plan), ese campo queda vacío.
 - Un servicio generado por un plan puede modificarse, reprogramarse o cancelarse individualmente sin afectar el resto de las visitas futuras del plan.
 - Dar de baja o pausar un PlanDeMantenimiento no elimina servicios ya generados, solo detiene la generación de futuros.
