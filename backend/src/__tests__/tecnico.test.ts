@@ -11,29 +11,31 @@ import {
   borrarClienteCompleto,
 } from './helpers';
 
-describe('Servicios del técnico (/mis-servicios)', () => {
+describe('Servicios del técnico (/mis-servicios y observaciones)', () => {
   const emailAdmin = 'test-mis-servicios-admin@easypool.com';
   const emailTecnico1 = 'test-mis-servicios-tecnico1@easypool.com';
   const emailTecnico2 = 'test-mis-servicios-tecnico2@easypool.com';
   const password = 'test123';
 
+  let tokenAdmin: string;
   let tokenTecnico1: string;
   let tokenTecnico2: string;
   let clienteId: number;
+  let servicio: any;
 
   beforeAll(async () => {
     const tecnico1 = await crearUsuarioDePrueba(emailTecnico1, password, 'tecnico');
     await crearUsuarioDePrueba(emailTecnico2, password, 'tecnico');
     await crearUsuarioDePrueba(emailAdmin, password, 'administrador');
 
-    const tokenAdmin = await obtenerToken(emailAdmin, password);
+    tokenAdmin = await obtenerToken(emailAdmin, password);
     tokenTecnico1 = await obtenerToken(emailTecnico1, password);
     tokenTecnico2 = await obtenerToken(emailTecnico2, password);
 
     const { cliente, ubicacion } = await crearClienteConUbicacion(tokenAdmin);
     clienteId = cliente.id;
-    const servicio = await crearServicioDePrueba(tokenAdmin, ubicacion.id);
-    await asignarTecnicoDePrueba(tokenAdmin, servicio.id, tecnico1.id, servicio.version);
+    servicio = await crearServicioDePrueba(tokenAdmin, ubicacion.id);
+    servicio = await asignarTecnicoDePrueba(tokenAdmin, servicio.id, tecnico1.id, servicio.version);
   });
 
   afterAll(async () => {
@@ -70,5 +72,56 @@ describe('Servicios del técnico (/mis-servicios)', () => {
       .set('Authorization', `Bearer ${tokenTecnico1}`);
 
     expect(respuesta.body[0].fecha_hora).toBe('2026-10-01T10:00:00');
+  });
+
+  it('no permite registrar observaciones en un servicio pendiente (400)', async () => {
+    const respuesta = await request(app)
+      .patch(`/servicios/${servicio.id}/observaciones`)
+      .set('Authorization', `Bearer ${tokenTecnico1}`)
+      .send({ observaciones: 'Todavía no salí' });
+
+    expect(respuesta.status).toBe(400);
+  });
+
+  it('rechaza observaciones que no sean texto (400)', async () => {
+    const respuesta = await request(app)
+      .patch(`/servicios/${servicio.id}/observaciones`)
+      .set('Authorization', `Bearer ${tokenTecnico1}`)
+      .send({ observaciones: 123 });
+
+    expect(respuesta.status).toBe(400);
+  });
+
+  it('el técnico puede registrar observaciones una vez que salió en camino', async () => {
+    await request(app)
+      .patch(`/servicios/${servicio.id}/estado`)
+      .set('Authorization', `Bearer ${tokenTecnico1}`)
+      .send({ estado: 'en_camino', version: servicio.version });
+
+    const respuesta = await request(app)
+      .patch(`/servicios/${servicio.id}/observaciones`)
+      .set('Authorization', `Bearer ${tokenTecnico1}`)
+      .send({ observaciones: 'Se cambió el filtro de la bomba' });
+
+    expect(respuesta.status).toBe(200);
+    expect(respuesta.body.observaciones).toBe('Se cambió el filtro de la bomba');
+  });
+
+  it('otro técnico no puede registrar observaciones en un servicio ajeno (404)', async () => {
+    const respuesta = await request(app)
+      .patch(`/servicios/${servicio.id}/observaciones`)
+      .set('Authorization', `Bearer ${tokenTecnico2}`)
+      .send({ observaciones: 'Intento de escritura ajena' });
+
+    expect(respuesta.status).toBe(404);
+  });
+
+  it('el administrador no puede usar el endpoint de observaciones (403)', async () => {
+    const respuesta = await request(app)
+      .patch(`/servicios/${servicio.id}/observaciones`)
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send({ observaciones: 'Intento del admin' });
+
+    expect(respuesta.status).toBe(403);
   });
 });
