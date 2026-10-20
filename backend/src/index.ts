@@ -586,6 +586,39 @@ app.post('/planes-mantenimiento/generar', verificarToken, verificarRol('administ
   }
 });
 
+
+app.patch('/servicios/:id/observaciones', verificarToken, verificarRol('tecnico'), async (req: RequestConUsuario, res: Response) => {
+  const { id } = req.params;
+  const { observaciones } = req.body;
+  const tecnicoId = req.usuario?.id;
+
+  if (typeof observaciones !== 'string') {
+    res.status(400).json({ error: 'Las observaciones deben ser un texto' });
+    return;
+  }
+
+  try {
+    const servicioResultado = await pool.query('SELECT estado FROM servicio WHERE id = $1 AND tecnico_id = $2', [id, tecnicoId]);
+    const servicio = servicioResultado.rows[0];
+
+    if (!servicio) {
+      res.status(404).json({ error: 'Servicio no encontrado o no asignado al técnico' });
+      return;
+    }
+
+    if (servicio.estado === 'pendiente' || servicio.estado === 'cancelado') {
+      res.status(400).json({ error: `No se pueden registrar observaciones en un servicio en estado ${servicio.estado}` });
+      return;
+    }
+
+    const resultado = await pool.query('UPDATE servicio SET observaciones = $1 WHERE id = $2 RETURNING *', [observaciones, id]);
+    res.json(resultado.rows[0]);
+  } catch (error) {
+    console.error('Error al guardar observaciones', error);
+    res.status(500).json({ error: 'Error al guardar las observaciones' });
+  }
+});
+
 export default app;
 if (require.main === module) {
 app.listen(PORT, () => {

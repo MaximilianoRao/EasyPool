@@ -63,4 +63,12 @@ describe('Servicios del técnico (/mis-servicios)', () => {
     expect(respuesta.status).toBe(200);
     expect(respuesta.body.length).toBe(0);
   });
+
+  it('devuelve la hora del servicio tal como se cargó, sin corrimientos de zona horaria', async () => {
+    const respuesta = await request(app)
+      .get('/mis-servicios')
+      .set('Authorization', `Bearer ${tokenTecnico1}`);
+
+    expect(respuesta.body[0].fecha_hora).toBe('2026-10-01T10:00:00');
+  });
 });
