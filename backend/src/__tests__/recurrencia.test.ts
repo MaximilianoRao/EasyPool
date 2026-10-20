@@ -42,6 +42,17 @@ describe('Recurrencia de servicios (Planes de Mantenimiento)', () => {
     expect(respuesta.body.frecuencia).toBe('semanal');
   });
 
+  it('el listado de planes incluye el cliente y la dirección', async () => {
+    const respuesta = await request(app)
+      .get('/planes-mantenimiento')
+      .set('Authorization', `Bearer ${tokenAdmin}`);
+
+    expect(respuesta.status).toBe(200);
+    const plan = respuesta.body.find((p: any) => p.ubicacion_id === ubicacionId);
+    expect(plan.cliente_nombre).toBe('Cliente de prueba');
+    expect(plan.direccion).toBe('Dirección de prueba');
+  });
+
   it('rechaza una frecuencia inválida', async () => {
     const respuesta = await request(app)
       .post('/planes-mantenimiento')

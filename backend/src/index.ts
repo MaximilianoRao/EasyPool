@@ -538,7 +538,13 @@ app.post('/planes-mantenimiento', verificarToken, verificarRol('administrador'),
 
 app.get('/planes-mantenimiento', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
   try {
-    const resultado = await pool.query('SELECT * FROM plan_mantenimiento ORDER BY fecha_inicio');
+    const resultado = await pool.query(
+      `SELECT p.*, u.direccion, c.nombre AS cliente_nombre
+       FROM plan_mantenimiento p
+       JOIN ubicacion u ON u.id = p.ubicacion_id
+       JOIN cliente c ON c.id = u.cliente_id
+       ORDER BY p.fecha_inicio`
+    );
     res.json(resultado.rows);
   } catch (error) {
     console.error('Error al consultar planes de mantenimiento', error);
