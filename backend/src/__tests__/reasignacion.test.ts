@@ -107,6 +107,8 @@ describe('Asignación y reasignación de técnicos', () => {
 
     expect(ultimoEvento.tecnico_anterior_id).toBeNull();
     expect(ultimoEvento.tecnico_nuevo_id).toBe(tecnico1Id);
+    const diferenciaMs = Math.abs(Date.now() - new Date(ultimoEvento.timestamp).getTime());
+    expect(diferenciaMs).toBeLessThan(60 * 1000);
   });
 
   it('el administrador puede reasignar el servicio a otro técnico', async () => {
