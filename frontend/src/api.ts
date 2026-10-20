@@ -98,7 +98,42 @@ export async function asignarTecnico(token: string, servicioId: number, tecnicoI
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ tecnico_id: tecnicoId, version }),
   });
-  if (!respuesta.ok) throw new Error('No se pudo asignar el técnico');
+
+  if (!respuesta.ok) {
+    const datos = await respuesta.json().catch(() => ({}));
+    throw new Error(datos.error || 'No se pudo asignar el técnico');
+  }
+
+  return respuesta.json();
+}
+
+export async function cancelarServicio(token: string, servicioId: number, version: number, motivo: string) {
+  const respuesta = await fetch(`${API_URL}/servicios/${servicioId}/cancelar`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ version, motivo }),
+  });
+
+  if (!respuesta.ok) {
+    const datos = await respuesta.json().catch(() => ({}));
+    throw new Error(datos.error || 'No se pudo cancelar el servicio');
+  }
+
+  return respuesta.json();
+}
+
+export async function reprogramarServicio(token: string, servicioId: number, version: number, fechaHora: string) {
+  const respuesta = await fetch(`${API_URL}/servicios/${servicioId}/reprogramar`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ version, fecha_hora: fechaHora }),
+  });
+
+  if (!respuesta.ok) {
+    const datos = await respuesta.json().catch(() => ({}));
+    throw new Error(datos.error || 'No se pudo reprogramar el servicio');
+  }
+
   return respuesta.json();
 }
 

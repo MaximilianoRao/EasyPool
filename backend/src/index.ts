@@ -488,11 +488,15 @@ app.patch('/servicios/:id/reprogramar', verificarToken, verificarRol('administra
 app.get('/servicios', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
   try {
     const resultado = await pool.query(
-      'SELECT * FROM servicio ORDER BY fecha_hora'
+      `SELECT s.*, u.direccion, c.nombre AS cliente_nombre, t.email AS tecnico_email
+       FROM servicio s
+       JOIN ubicacion u ON u.id = s.ubicacion_id
+       JOIN cliente c ON c.id = u.cliente_id
+       LEFT JOIN usuario t ON t.id = s.tecnico_id
+       ORDER BY s.fecha_hora`
     );
 
     res.json(resultado.rows);
-
   } catch (error) {
     console.error('Error al consultar servicios', error);
     res.status(500).json({ error: 'Error al consultar servicios' });
@@ -624,6 +628,7 @@ app.patch('/servicios/:id/observaciones', verificarToken, verificarRol('tecnico'
     res.status(500).json({ error: 'Error al guardar las observaciones' });
   }
 });
+
 
 export default app;
 if (require.main === module) {

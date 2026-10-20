@@ -243,4 +243,16 @@ describe('Transiciones de estado y bloqueo optimista', () => {
     await borrarClienteCompleto(cliente.id);
   });
 
+  it('el administrador ve cliente, dirección y técnico en el listado de servicios', async () => {
+    const respuesta = await request(app)
+      .get('/servicios')
+      .set('Authorization', `Bearer ${tokenAdmin}`);
+
+    expect(respuesta.status).toBe(200);
+    const encontrado = respuesta.body.find((s: any) => s.id === servicio.id);
+    expect(encontrado.cliente_nombre).toBe('Cliente de prueba');
+    expect(encontrado.direccion).toBe('Dirección de prueba');
+    expect(encontrado.tecnico_email).toBe(emailTecnico);
+  });
+
 });

@@ -72,26 +72,31 @@ function AdminPanel({
   }
 
   async function handleCrearServicio(e: React.FormEvent) {
-    e.preventDefault();
-    setMensajeServicio('');
+  e.preventDefault();
+  setMensajeServicio('');
 
-    try {
-      const servicio = await crearServicio(token, Number(ubicacionSeleccionada), fechaHora, Number(duracionMinutos));
+  try {
+    const servicio = await crearServicio(token, Number(ubicacionSeleccionada), fechaHora, Number(duracionMinutos));
+    let mensajeFinal = 'Servicio creado correctamente.';
 
-      if (tecnicoSeleccionado) {
+    if (tecnicoSeleccionado) {
+      try {
         await asignarTecnico(token, servicio.id, Number(tecnicoSeleccionado), servicio.version);
+      } catch (err: any) {
+        mensajeFinal = `Servicio creado, pero quedó sin técnico: ${err.message}`;
       }
-
-      setMensajeServicio('Servicio creado correctamente.');
-      onServicioCreado();
-      setClienteSeleccionado('');
-      setFechaHora('');
-      setDuracionMinutos('60');
-      setTecnicoSeleccionado('');
-    } catch (err) {
-      setMensajeServicio('Ocurrió un error al crear el servicio.');
     }
+
+    setMensajeServicio(mensajeFinal);
+    onServicioCreado();
+    setClienteSeleccionado('');
+    setFechaHora('');
+    setDuracionMinutos('60');
+    setTecnicoSeleccionado('');
+  } catch (err) {
+    setMensajeServicio('Ocurrió un error al crear el servicio.');
   }
+}
 
   return (
     <div>
