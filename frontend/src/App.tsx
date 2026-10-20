@@ -3,6 +3,7 @@ import { login, obtenerClientes, obtenerServicios} from './api';
 import AdminPanel from './AdminPanel';
 import TecnicoPanel from './TecnicoPanel';
 import PlanesPanel from './PlanesPanel';
+import ServiciosPanel from './ServiciosPanel';
 
 function App() {
   const [email, setEmail] = useState('');
@@ -112,19 +113,11 @@ async function handleLogin(e: React.FormEvent) {
               </ul>
             )}
 
-            <h2>Servicios</h2>
-            {servicios.length === 0 ? (
-              <p>No hay servicios cargados todavía.</p>
-            ) : (
-              <ul>
-                {servicios.map((s) => (
-                  <li key={s.id}>
-                    {s.fecha_hora} — estado: {s.estado}{' '}
-                    {s.tecnico_id ? `— técnico #${s.tecnico_id}` : '(sin asignar)'}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <ServiciosPanel
+              token={token}
+              servicios={servicios}
+              onCambio={() => cargarServicios(token)}
+            />
           </>
         )}
 
