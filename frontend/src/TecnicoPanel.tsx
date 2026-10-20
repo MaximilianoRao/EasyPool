@@ -79,12 +79,18 @@ function TecnicoPanel({ token }: { token: string }) {
       ) : (
         <ul>
           {servicios.map((s) => (
-            <li key={s.id}>
-              {s.fecha_hora} — estado: {s.estado}
+            <li key={s.id} style={{ marginBottom: '16px' }}>
+              <strong>{s.cliente_nombre}</strong> — {s.direccion}
+              <br />
+              {new Date(s.fecha_hora).toLocaleString()} ({s.duracion_minutos} min) — estado: {s.estado}
+              <br />
+              {s.cliente_telefono && <span>Tel: {s.cliente_telefono} — </span>}
+              <a href={`https://www.google.com/maps?q=${s.latitud},${s.longitud}`} target="_blank" rel="noreferrer">
+                Ver en mapa
+              </a>
+              <br />
               {siguienteEstado[s.estado] && (
-                <button onClick={() => handleCambiarEstado(s)} style={{ marginLeft: '10px' }}>
-                  {textoBoton[s.estado]}
-                </button>
+                <button onClick={() => handleCambiarEstado(s)}>{textoBoton[s.estado]}</button>
               )}
               {(s.estado === 'en_camino' || s.estado === 'en_servicio') && (
                 <button onClick={() => handleNoRealizado(s)} style={{ marginLeft: '10px' }}>
