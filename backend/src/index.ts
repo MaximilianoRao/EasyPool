@@ -6,6 +6,7 @@ import { verificarToken, verificarRol, RequestConUsuario } from './middleware/au
 import cors from 'cors';
 import { generarServiciosDesdePlanes } from './recurrencia';
 import { haySuperposicion } from './agenda';
+import { ordenarPorCercania, distanciaTotalKm } from './rutas';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -629,6 +630,70 @@ app.patch('/servicios/:id/observaciones', verificarToken, verificarRol('tecnico'
   }
 });
 
+function esFechaValida(fecha: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return false;
+  const d = new Date(fecha + 'T00:00:00Z');
+  return !isNaN(d.getTime()) && d.toISOString().slice(0, 10) === fecha;
+}
+
+const redondearKm = (km: number) => Math.round(km * 10) / 10;
+
+app.get('/rutas/sugerida', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
+  const tecnicoId = Number(req.query.tecnico_id);
+  const fecha = String(req.query.fecha ?? '');
+
+  if (!Number.isInteger(tecnicoId) || !esFechaValida(fecha)) {
+    res.status(400).json({ error: 'Se requiere tecnico_id y una fecha válida con formato AAAA-MM-DD' });
+    return;
+  }
+
+  try {
+    const tecnicoResultado = await pool.query('SELECT rol FROM usuario WHERE id = $1', [tecnicoId]);
+    const tecnico = tecnicoResultado.rows[0];
+
+    if (!tecnico) {
+      res.status(404).json({ error: 'El técnico indicado no existe' });
+      return;
+    }
+
+    if (tecnico.rol !== 'tecnico') {
+      res.status(400).json({ error: 'El usuario indicado no tiene rol de técnico' });
+      return;
+    }
+
+    const serviciosResultado = await pool.query(
+      `SELECT s.id, s.fecha_hora, s.duracion_minutos, s.estado,
+              u.direccion, u.latitud, u.longitud, c.nombre AS cliente_nombre
+       FROM servicio s
+       JOIN ubicacion u ON u.id = s.ubicacion_id
+       JOIN cliente c ON c.id = u.cliente_id
+       WHERE s.tecnico_id = $1
+         AND s.fecha_hora::date = $2::date
+         AND s.estado IN ('pendiente', 'en_camino', 'en_servicio')
+       ORDER BY s.fecha_hora`,
+      [tecnicoId, fecha]
+    );
+    const servicios = serviciosResultado.rows;
+
+    const puntos = servicios.map((s) => ({ id: s.id, latitud: s.latitud, longitud: s.longitud }));
+    const puntosSugeridos = ordenarPorCercania(puntos);
+    const sugerido = puntosSugeridos.map((p) => servicios.find((s) => s.id === p.id));
+
+    const distanciaActual = distanciaTotalKm(puntos);
+    const distanciaSugerida = distanciaTotalKm(puntosSugeridos);
+
+    res.json({
+      actual: servicios,
+      sugerido,
+      distancia_actual_km: redondearKm(distanciaActual),
+      distancia_sugerida_km: redondearKm(distanciaSugerida),
+      ahorro_km: redondearKm(distanciaActual - distanciaSugerida),
+    });
+  } catch (error) {
+    console.error('Error al calcular la ruta sugerida', error);
+    res.status(500).json({ error: 'Error al calcular la ruta sugerida' });
+  }
+});
 
 export default app;
 if (require.main === module) {
