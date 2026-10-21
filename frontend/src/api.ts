@@ -251,3 +251,16 @@ export async function generarServicios(token: string) {
   if (!respuesta.ok) throw new Error('No se pudieron generar los servicios');
   return respuesta.json();
 }
+
+export async function obtenerRutaSugerida(token: string, tecnicoId: number, fecha: string) {
+  const respuesta = await fetch(`${API_URL}/rutas/sugerida?tecnico_id=${tecnicoId}&fecha=${fecha}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!respuesta.ok) {
+    const datos = await respuesta.json().catch(() => ({}));
+    throw new Error(datos.error || 'No se pudo calcular la ruta sugerida');
+  }
+
+  return respuesta.json();
+}
