@@ -4,6 +4,7 @@ import AdminPanel from './AdminPanel';
 import TecnicoPanel from './TecnicoPanel';
 import PlanesPanel from './PlanesPanel';
 import ServiciosPanel from './ServiciosPanel';
+import RutasPanel from './RutasPanel';
 
 function App() {
   const [email, setEmail] = useState('');
@@ -118,6 +119,8 @@ async function handleLogin(e: React.FormEvent) {
               servicios={servicios}
               onCambio={() => cargarServicios(token)}
             />
+
+            <RutasPanel token={token} />
           </>
         )}
 
