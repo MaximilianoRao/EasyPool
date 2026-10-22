@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { obtenerMisServicios, cambiarEstado, marcarNoRealizado, guardarObservaciones } from './api';
+import Notificaciones from './Notificaciones';
 
 const siguienteEstado: Record<string, string> = {
   pendiente: 'en_camino',
@@ -92,6 +93,7 @@ function TecnicoPanel({ token }: { token: string }) {
 
   return (
     <div>
+      <Notificaciones token={token} onNuevas={cargar} />
       <h2>Mis Servicios</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <label>

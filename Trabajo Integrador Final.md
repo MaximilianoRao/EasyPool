@@ -284,14 +284,19 @@ Un portal específico para clientes o un sistema de notificaciones destinado dir
 
 **Sistema**
 - Base de datos centralizada.
-- Actualización de estados en tiempo casi real.
+- Actualización de la información por consulta periódica, no en tiempo real: la lista de servicios del administrador se actualiza al volver el foco a la pestaña, cuando llega una notificación nueva y cada 30 segundos; la del técnico, al abrir la aplicación y cuando llega una notificación nueva.
+- Notificación básica ante cambios: al asignar, reasignar, reprogramar o cancelar un servicio, el sistema genera una notificación dentro de la aplicación (lista con contador de no leídas) para el técnico afectado; cuando un técnico marca un servicio como No Realizado, se notifica a los administradores. No se implementan push notifications ni envío de SMS/email en el MVP, para no incorporar infraestructura adicional (queda como mejora futura si se demuestra necesario). Las notificaciones se consultan al abrir la aplicación, al volver el foco a la pestaña y cada 30 segundos; no se utilizan WebSockets ni notificaciones push, por lo que la actualización no es en tiempo real.
 - Registro histórico de servicios.
-- Notificación básica ante cambios: al modificar, reasignar o cancelar un servicio, el sistema generará una notificación dentro de la aplicación (lista/badge de notificaciones no leídas) visible para el técnico afectado la próxima vez que abra la app. No se implementarán push notifications ni envío de SMS/email en el MVP, para no incorporar infraestructura adicional (esto queda como mejora futura si se demuestra necesario).
 - Registro de fecha/hora de las operaciones.
 
 **Rutas**
 
-En nuestro MVP, optimizar una ruta significa determinar un orden de visita para los servicios asignados a un técnico buscando reducir la distancia total aproximada entre los domicilios.
+En nuestro MVP, optimizar una ruta significa **proponer un orden de visita para los servicios que un técnico ya tiene asignados en un día**, de manera que se reduzca la distancia total recorrida. No reasigna técnicos ni modifica horarios: el sistema muestra el orden actual (por horario) junto al orden sugerido y la diferencia en kilómetros, y es el administrador quien decide si reprograma.
+
+- **Variable que se optimiza:** distancia total recorrida, en línea recta (fórmula de Haversine), entre las coordenadas de las ubicaciones, cargadas manualmente por el administrador. No se utiliza ningún servicio externo de mapas ni de ruteo.
+- **Algoritmo:** heurística del vecino más cercano. El primer servicio del día (por horario) queda fijo como punto de partida, ya que no hay una base de la empresa cargada en el sistema, y desde ahí se visita siempre el servicio pendiente más cercano.
+- **Servicios considerados:** los del técnico y la fecha elegidos que estén en estado pendiente, en camino o en servicio.
+- **Limitaciones:** la distancia en línea recta no es la distancia por calles. La heurística no garantiza el recorrido óptimo: en algunos casos el orden sugerido puede igualar o incluso superar al actual, y la pantalla lo informa. No se consideran ventanas horarias ni tiempos de viaje.
 
 La primera versión se limitará a:
 
@@ -300,7 +305,7 @@ La primera versión se limitará a:
 - una ubicación inicial;
 - múltiples destinos;
 - coordenadas de latitud y longitud;
-- cálculo de distancias entre los puntos;
+- cálculo de distancias en linea recta entre los puntos;
 - determinación de un orden de visita basado en esas distancias.
 
 No se resolverán inicialmente ventanas horarias complejas, distribución automática de servicios entre múltiples técnicos, tráfico en tiempo real ni reoptimización automática ante modificaciones.
@@ -343,6 +348,11 @@ erDiagram
     UBICACION ||--o{ PLAN_MANTENIMIENTO : "tiene"
     UBICACION ||--o{ SERVICIO : "recibe"
     PLAN_MANTENIMIENTO ||--o{ SERVICIO : "genera"
+    USUARIO |o--o{ SERVICIO : "atiende"
+    SERVICIO ||--o{ HISTORIAL_ESTADO : "registra"
+    USUARIO ||--o{ HISTORIAL_ESTADO : "realiza"
+    USUARIO ||--o{ NOTIFICACION : "recibe"
+    SERVICIO |o--o{ NOTIFICACION : "origina"
 
     CLIENTE {
         int id
@@ -360,8 +370,8 @@ erDiagram
         int id
         int ubicacion_id
         string frecuencia
-        timestamp fecha_inicio
-        timestamp proxima_generacion
+        datetime fecha_inicio
+        datetime proxima_generacion
         int duracion_minutos
         boolean activo
     }
@@ -372,16 +382,47 @@ erDiagram
         int tecnico_id
         string estado
         string motivo_no_realizado
+        string observaciones
+        datetime fecha_hora
         int duracion_minutos
         int version
-        datetime fecha_hora
+    }
+    USUARIO {
+        int id
+        string nombre
+        string email
+        string password_hash
+        string rol
+    }
+    HISTORIAL_ESTADO {
+        int id
+        int servicio_id
+        int actor_id
+        string estado_anterior
+        string estado_nuevo
+        string motivo
+        int tecnico_anterior_id
+        int tecnico_nuevo_id
+        datetime fecha_anterior
+        datetime fecha_nueva
+        datetime timestamp
+    }
+    NOTIFICACION {
+        int id
+        int usuario_id
+        int servicio_id
+        string mensaje
+        boolean leida
+        datetime creada_en
     }
 ```
+
 >`fecha_inicio` y `proxima_generacion` en Plan de Mantenimiento son el ancla temporal que permite generar servicios de forma determinística e idempotente (correr el generador más de una vez no crea duplicados, protegido además por una restricción `UNIQUE (plan_id, fecha_hora)` en la base). `duracion_minutos` en Servicio (y su equivalente en Plan de Mantenimiento, heredado por los servicios que genera) permite detectar superposiciones en la agenda de un mismo técnico.
 
 - **Cliente**: datos de contacto y facturación (nombre, teléfono, dirección de facturación si aplica).
 - **Ubicación/Piscina**: pertenece a un cliente; tiene su propia dirección y coordenadas (lat/long); es el lugar real hacia el que se calcula la ruta. Un cliente puede tener más de una.
 - **Servicio**: referencia a una Ubicación (no directamente al Cliente). El cliente se obtiene indirectamente a través de la ubicación.
+- **Notificación**: aviso interno dirigido a un usuario y vinculado al servicio que lo originó. Se crea dentro de la misma transacción que el cambio que la provoca, de modo que nunca existe un aviso de algo que no ocurrió ni un cambio sin su aviso.
 
 ### Recurrencia de Mantenimientos
 
@@ -437,7 +478,7 @@ Los horarios de agenda de los servicios (`fecha_hora`, `fecha_anterior`, `fecha_
 - **Planes de Mantenimiento** *(posterior al 27/09)*: definición de recurrencia y generación automática de servicios.
 - **Rutas**: cálculo de orden de visita por distancia entre ubicaciones asignadas a un técnico.
 - **Ubicación y Evidencia**: registro de coordenadas y evidencia del servicio en los momentos definidos (En servicio / Finalizado / No Realizado).
-- **Notificaciones**: aviso dentro de la aplicación ante cambios relevantes (reasignación, cancelación, No Realizado).
+- **Notificaciones**: aviso dentro de la aplicación ante cambios relevantes (asignación, reasignación, reprogramación, cancelación y No Realizado).
 
 ### Autorización
 
