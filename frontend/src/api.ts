@@ -264,3 +264,20 @@ export async function obtenerRutaSugerida(token: string, tecnicoId: number, fech
 
   return respuesta.json();
 }
+
+export async function obtenerNotificaciones(token: string) {
+  const respuesta = await fetch(`${API_URL}/notificaciones`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!respuesta.ok) throw new Error('No se pudieron obtener las notificaciones');
+  return respuesta.json();
+}
+
+export async function marcarNotificacionesLeidas(token: string) {
+  const respuesta = await fetch(`${API_URL}/notificaciones/leidas`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!respuesta.ok) throw new Error('No se pudieron marcar las notificaciones');
+  return respuesta.json();
+}

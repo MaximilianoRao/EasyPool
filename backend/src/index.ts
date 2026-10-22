@@ -7,6 +7,8 @@ import cors from 'cors';
 import { generarServiciosDesdePlanes } from './recurrencia';
 import { haySuperposicion } from './agenda';
 import { ordenarPorCercania, distanciaTotalKm } from './rutas';
+import { crearNotificacion, notificarAdministradores, formatearFechaHora } from './notificaciones';
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -262,6 +264,11 @@ app.patch('/servicios/:id/asignar', verificarToken, verificarRol('administrador'
         [id, servicio.estado, 'pendiente', adminId, servicio.tecnico_id, tecnico_id, 'Asignación de técnico']
       );
 
+      await crearNotificacion(client, tecnico_id, Number(id), `Se te asignó un servicio para el ${formatearFechaHora(servicio.fecha_hora)}.`);
+      if (servicio.tecnico_id && servicio.tecnico_id !== tecnico_id) {
+        await crearNotificacion(client, servicio.tecnico_id, Number(id), `Se te quitó el servicio del ${formatearFechaHora(servicio.fecha_hora)}.`);
+      }
+
       await client.query('COMMIT');
       res.json(actualizado.rows[0]);
     } catch (error) {
@@ -349,6 +356,14 @@ app.patch('/servicios/:id/estado', verificarToken, verificarRol('tecnico'), asyn
         [id, servicio.estado, estado, tecnicoId, estado === 'no_realizado' ? motivo : null]
       );
 
+      if (estado === 'no_realizado') {
+        await notificarAdministradores(
+          client,
+          Number(id),
+          `El servicio del ${formatearFechaHora(servicio.fecha_hora)} quedó como no realizado: ${motivo}.`
+        );
+      }
+
       await client.query('COMMIT');
       res.json(actualizado.rows[0]);
     } catch (error) {
@@ -403,6 +418,10 @@ app.patch('/servicios/:id/cancelar', verificarToken, verificarRol('administrador
         `INSERT INTO historial_estado (servicio_id, estado_anterior, estado_nuevo, actor_id, motivo) VALUES ($1, $2, $3, $4, $5)`,
         [id, servicio.estado, 'cancelado', adminId, motivo || null]
       );
+
+      if (servicio.tecnico_id) {
+        await crearNotificacion(client, servicio.tecnico_id, Number(id), `El servicio del ${formatearFechaHora(servicio.fecha_hora)} fue cancelado.`);
+      }
 
       await client.query('COMMIT');
       res.json(actualizado.rows[0]);
@@ -471,6 +490,15 @@ app.patch('/servicios/:id/reprogramar', verificarToken, verificarRol('administra
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
         [id, servicio.estado, 'pendiente', adminId, 'Reprogramación', servicio.fecha_hora, fecha_hora]
       );
+
+      if (servicio.tecnico_id) {
+        await crearNotificacion(
+          client,
+          servicio.tecnico_id,
+          Number(id),
+          `El servicio del ${formatearFechaHora(servicio.fecha_hora)} fue reprogramado para el ${formatearFechaHora(fecha_hora)}.`
+        );
+      }
 
       await client.query('COMMIT');
       res.json(actualizado.rows[0]);
@@ -692,6 +720,64 @@ app.get('/rutas/sugerida', verificarToken, verificarRol('administrador'), async 
   } catch (error) {
     console.error('Error al calcular la ruta sugerida', error);
     res.status(500).json({ error: 'Error al calcular la ruta sugerida' });
+  }
+});
+
+app.get('/notificaciones', verificarToken, async (req: RequestConUsuario, res: Response) => {
+  const usuarioId = req.usuario?.id;
+
+  try {
+    const resultado = await pool.query(
+      `SELECT id, servicio_id, mensaje, leida, creada_en
+       FROM notificacion
+       WHERE usuario_id = $1
+       ORDER BY creada_en DESC
+       LIMIT 50`,
+      [usuarioId]
+    );
+    res.json(resultado.rows);
+  } catch (error) {
+    console.error('Error al consultar notificaciones', error);
+    res.status(500).json({ error: 'Error al consultar notificaciones' });
+  }
+});
+
+app.patch('/notificaciones/leidas', verificarToken, async (req: RequestConUsuario, res: Response) => {
+  const usuarioId = req.usuario?.id;
+
+  try {
+    await pool.query('UPDATE notificacion SET leida = true WHERE usuario_id = $1 AND leida = false', [usuarioId]);
+    res.json({ mensaje: 'Notificaciones marcadas como leídas' });
+  } catch (error) {
+    console.error('Error al marcar notificaciones', error);
+    res.status(500).json({ error: 'Error al marcar las notificaciones' });
+  }
+});
+
+app.patch('/notificaciones/:id/leida', verificarToken, async (req: RequestConUsuario, res: Response) => {
+  const id = Number(req.params.id);
+  const usuarioId = req.usuario?.id;
+
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: 'El id de la notificación no es válido' });
+    return;
+  }
+
+  try {
+    const resultado = await pool.query(
+      'UPDATE notificacion SET leida = true WHERE id = $1 AND usuario_id = $2 RETURNING *',
+      [id, usuarioId]
+    );
+
+    if (resultado.rowCount === 0) {
+      res.status(404).json({ error: 'Notificación no encontrada' });
+      return;
+    }
+
+    res.json(resultado.rows[0]);
+  } catch (error) {
+    console.error('Error al marcar notificación', error);
+    res.status(500).json({ error: 'Error al marcar la notificación' });
   }
 });
 

@@ -5,6 +5,7 @@ import TecnicoPanel from './TecnicoPanel';
 import PlanesPanel from './PlanesPanel';
 import ServiciosPanel from './ServiciosPanel';
 import RutasPanel from './RutasPanel';
+import Notificaciones from './Notificaciones';
 
 function App() {
   const [email, setEmail] = useState('');
@@ -23,16 +24,20 @@ function App() {
   }, [token, rol]);
 
   useEffect(() => {
-    function alVolverElFoco() {
+    function actualizar() {
       if (token && rol === 'administrador') {
         cargarClientes(token);
         cargarServicios(token);
       }
     }
 
-  window.addEventListener('focus', alVolverElFoco);
-  return () => window.removeEventListener('focus', alVolverElFoco);
-}, [token, rol]);
+    window.addEventListener('focus', actualizar);
+    const intervalo = setInterval(actualizar, 30000);
+    return () => {
+      window.removeEventListener('focus', actualizar);
+      clearInterval(intervalo);
+    };
+  }, [token, rol]);
 
 async function handleLogin(e: React.FormEvent) {
   e.preventDefault();
@@ -90,6 +95,7 @@ async function handleLogin(e: React.FormEvent) {
 
         {rol === 'administrador' && (
           <>
+            <Notificaciones token={token} onNuevas={() => cargarServicios(token)} />
             <AdminPanel
               token={token}
               clientes={clientes}
