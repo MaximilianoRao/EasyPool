@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { obtenerMisServicios, cambiarEstado, marcarNoRealizado, guardarObservaciones } from './api';
 import Notificaciones from './Notificaciones';
+import { formatearFechaHora } from './fechas';
+
 
 const siguienteEstado: Record<string, string> = {
   pendiente: 'en_camino',
@@ -108,7 +110,7 @@ function TecnicoPanel({ token }: { token: string }) {
             <li key={s.id} style={{ marginBottom: '16px' }}>
               <strong>{s.cliente_nombre}</strong> — {s.direccion}
               <br />
-              {new Date(s.fecha_hora).toLocaleString()} ({s.duracion_minutos} min) — estado: {s.estado}
+              {formatearFechaHora(s.fecha_hora)} ({s.duracion_minutos} min) — estado: {s.estado}
               <br />
               {s.cliente_telefono && <span>Tel: {s.cliente_telefono} — </span>}
               <a href={`https://www.google.com/maps?q=${s.latitud},${s.longitud}`} target="_blank" rel="noreferrer">

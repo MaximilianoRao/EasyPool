@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { obtenerNotificaciones, marcarNotificacionesLeidas } from './api';
+import { formatearInstante } from './fechas';
 
 function Notificaciones({ token, onNuevas }: { token: string; onNuevas?: () => void }) {
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
@@ -58,7 +59,7 @@ function Notificaciones({ token, onNuevas }: { token: string; onNuevas?: () => v
               <ul>
                 {notificaciones.map((n) => (
                   <li key={n.id} style={{ fontWeight: n.leida ? 'normal' : 'bold' }}>
-                    {new Date(n.creada_en).toLocaleString()} — {n.mensaje}
+                    {formatearInstante(n.creada_en)} — {n.mensaje}
                   </li>
                 ))}
               </ul>

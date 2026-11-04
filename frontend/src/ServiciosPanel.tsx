@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { obtenerTecnicos, asignarTecnico, cancelarServicio, reprogramarServicio } from './api';
+import { formatearFechaHora } from './fechas';
 
 function ServiciosPanel({
   token,
@@ -64,7 +65,7 @@ function ServiciosPanel({
             <li key={s.id} style={{ marginBottom: '16px' }}>
               <strong>{s.cliente_nombre}</strong> — {s.direccion}
               <br />
-              {s.fecha_hora.slice(0, 16).replace('T', ' ')} ({s.duracion_minutos} min) — estado: {s.estado}
+              {formatearFechaHora(s.fecha_hora)} ({s.duracion_minutos} min) — estado: {s.estado}
               <br />
               Técnico: {s.tecnico_email || 'sin asignar'}
               {s.motivo_no_realizado && (
