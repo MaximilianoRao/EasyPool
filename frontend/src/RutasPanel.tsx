@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { obtenerTecnicos, obtenerRutaSugerida } from './api';
+import { formatearHora } from './fechas';
 
 function RutasPanel({ token }: { token: string }) {
   const [tecnicos, setTecnicos] = useState<any[]>([]);
@@ -24,9 +25,6 @@ function RutasPanel({ token }: { token: string }) {
     }
   }
 
-  function hora(fechaHora: string) {
-    return fechaHora.slice(11, 16);
-  }
 
   return (
     <div>
@@ -55,7 +53,7 @@ function RutasPanel({ token }: { token: string }) {
           <ol>
             {ruta.actual.map((s: any) => (
               <li key={s.id}>
-                {hora(s.fecha_hora)} — {s.cliente_nombre} — {s.direccion}
+                {formatearHora(s.fecha_hora)} — {s.cliente_nombre} — {s.direccion}
               </li>
             ))}
           </ol>
@@ -64,7 +62,7 @@ function RutasPanel({ token }: { token: string }) {
           <ol>
             {ruta.sugerido.map((s: any) => (
               <li key={s.id}>
-                {hora(s.fecha_hora)} — {s.cliente_nombre} — {s.direccion}
+                {formatearHora(s.fecha_hora)} — {s.cliente_nombre} — {s.direccion}
               </li>
             ))}
           </ol>

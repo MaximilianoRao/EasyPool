@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { obtenerUbicaciones, obtenerPlanes, crearPlan, cambiarEstadoPlan, generarServicios } from './api';
+import { formatearFechaHora } from './fechas';
 
 function PlanesPanel({
   token,
@@ -142,7 +143,7 @@ function PlanesPanel({
           {planes.map((p) => (
             <li key={p.id}>
               {p.cliente_nombre} — {p.direccion} — {p.frecuencia}, desde{' '}
-              {p.fecha_inicio.slice(0, 16).replace('T', ' ')} ({p.duracion_minutos} min) —{' '}
+              {formatearFechaHora(p.fecha_inicio)} ({p.duracion_minutos} min) —{' '}
               {p.activo ? 'activo' : 'pausado'}
               <button onClick={() => handlePausarReactivar(p)} style={{ marginLeft: '10px' }}>
                 {p.activo ? 'Pausar' : 'Reactivar'}

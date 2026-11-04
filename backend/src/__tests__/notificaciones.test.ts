@@ -65,6 +65,7 @@ describe('Notificaciones', () => {
     expect(lista[0].mensaje).toMatch(/Se te asignó/);
     expect(lista[0].servicio_id).toBe(servicio.id);
     expect(lista[0].leida).toBe(false);
+    expect(lista[0].mensaje).toContain('01/10/2026 10:00');
   });
 
   it('al reasignar, se avisa al técnico anterior y al nuevo', async () => {
@@ -99,7 +100,7 @@ describe('Notificaciones', () => {
     servicio = respuesta.body;
 
     const lista = await notificacionesDe(tokenTecnico2);
-    expect(lista.some((n) => /reprogramado/.test(n.mensaje))).toBe(true);
+    expect(lista.some((n) => /reprogramado para el 01\/12\/2026 10:00/.test(n.mensaje))).toBe(true);
   });
 
   it('al cancelar, el técnico asignado recibe la notificación', async () => {
