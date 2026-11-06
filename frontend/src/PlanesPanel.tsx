@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { obtenerUbicaciones, obtenerPlanes, crearPlan, cambiarEstadoPlan, generarServicios } from './api';
 import { formatearFechaHora } from './fechas';
+import { boton, botonSecundario, botonChico, campo, etiqueta, tarjeta, titulo } from './estilos';
 
 function PlanesPanel({
   token,
@@ -81,38 +82,54 @@ function PlanesPanel({
   }
 
   return (
-    <div>
-      <h2>Planes de Mantenimiento</h2>
-      <form onSubmit={handleCrearPlan}>
+    <section className={tarjeta}>
+      <h2 className={titulo}>Planes de mantenimiento</h2>
+
+      <form onSubmit={handleCrearPlan} className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label>Cliente: </label>
-          <select value={clienteSeleccionado} onChange={(e) => setClienteSeleccionado(e.target.value)} required>
+          <label className={etiqueta}>Cliente</label>
+          <select
+            className={campo}
+            value={clienteSeleccionado}
+            onChange={(e) => setClienteSeleccionado(e.target.value)}
+            required
+          >
             <option value="">Seleccionar cliente</option>
             {clientes.map((c) => (
-              <option key={c.id} value={c.id}>{c.nombre}</option>
+              <option key={c.id} value={c.id}>
+                {c.nombre}
+              </option>
             ))}
           </select>
         </div>
         <div>
-          <label>Ubicación: </label>
-          <select value={ubicacionSeleccionada} onChange={(e) => setUbicacionSeleccionada(e.target.value)} required>
+          <label className={etiqueta}>Ubicación</label>
+          <select
+            className={campo}
+            value={ubicacionSeleccionada}
+            onChange={(e) => setUbicacionSeleccionada(e.target.value)}
+            required
+          >
             <option value="">Seleccionar ubicación</option>
             {ubicaciones.map((u) => (
-              <option key={u.id} value={u.id}>{u.direccion}</option>
+              <option key={u.id} value={u.id}>
+                {u.direccion}
+              </option>
             ))}
           </select>
         </div>
         <div>
-          <label>Frecuencia: </label>
-          <select value={frecuencia} onChange={(e) => setFrecuencia(e.target.value)}>
+          <label className={etiqueta}>Frecuencia</label>
+          <select className={campo} value={frecuencia} onChange={(e) => setFrecuencia(e.target.value)}>
             <option value="semanal">Semanal</option>
             <option value="quincenal">Quincenal</option>
             <option value="mensual">Mensual</option>
           </select>
         </div>
         <div>
-          <label>Primera visita: </label>
+          <label className={etiqueta}>Primera visita</label>
           <input
+            className={campo}
             type="datetime-local"
             value={fechaInicio}
             onChange={(e) => setFechaInicio(e.target.value)}
@@ -120,39 +137,53 @@ function PlanesPanel({
           />
         </div>
         <div>
-          <label>Duración (minutos): </label>
+          <label className={etiqueta}>Duración (minutos)</label>
           <input
+            className={campo}
             type="number"
+            min={1}
             value={duracionMinutos}
             onChange={(e) => setDuracionMinutos(e.target.value)}
             required
           />
         </div>
-        <button type="submit">Crear plan</button>
+        <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row">
+          <button type="submit" className={`${boton} w-full sm:w-auto`}>
+            Crear plan
+          </button>
+          <button type="button" onClick={handleGenerar} className={`${botonSecundario} w-full sm:w-auto`}>
+            Generar servicios de los próximos 30 días
+          </button>
+        </div>
       </form>
 
-      <button onClick={handleGenerar} style={{ marginTop: '12px' }}>
-        Generar servicios de los próximos 30 días
-      </button>
-      {mensaje && <p>{mensaje}</p>}
+      {mensaje && <p className="mt-3 rounded-lg bg-gray-100 p-3 text-sm">{mensaje}</p>}
 
       {planes.length === 0 ? (
-        <p>No hay planes cargados todavía.</p>
+        <p className="mt-4 text-sm text-gray-600">No hay planes cargados todavía.</p>
       ) : (
-        <ul>
+        <ul className="mt-4 divide-y divide-gray-100">
           {planes.map((p) => (
-            <li key={p.id}>
-              {p.cliente_nombre} — {p.direccion} — {p.frecuencia}, desde{' '}
-              {formatearFechaHora(p.fecha_inicio)} ({p.duracion_minutos} min) —{' '}
-              {p.activo ? 'activo' : 'pausado'}
-              <button onClick={() => handlePausarReactivar(p)} style={{ marginLeft: '10px' }}>
+            <li key={p.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-sm">
+                <p className="font-medium">
+                  {p.cliente_nombre} · {p.direccion}
+                </p>
+                <p className="text-gray-600">
+                  {p.frecuencia}, desde {formatearFechaHora(p.fecha_inicio)} ({p.duracion_minutos} min) ·{' '}
+                  <span className={p.activo ? 'text-green-700' : 'text-orange-700'}>
+                    {p.activo ? 'activo' : 'pausado'}
+                  </span>
+                </p>
+              </div>
+              <button onClick={() => handlePausarReactivar(p)} className={botonChico}>
                 {p.activo ? 'Pausar' : 'Reactivar'}
               </button>
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </section>
   );
 }
 

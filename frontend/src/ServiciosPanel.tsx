@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { obtenerTecnicos, asignarTecnico, cancelarServicio, reprogramarServicio } from './api';
 import { formatearFechaHora } from './fechas';
+import { boton, botonChico, botonPeligro, campo, tarjeta, titulo, claseEstado, nombreEstado } from './estilos';
 
 function ServiciosPanel({
   token,
@@ -14,6 +15,7 @@ function ServiciosPanel({
   const [tecnicos, setTecnicos] = useState<any[]>([]);
   const [tecnicoPorServicio, setTecnicoPorServicio] = useState<Record<number, string>>({});
   const [fechaPorServicio, setFechaPorServicio] = useState<Record<number, string>>({});
+  const [fechaFiltro, setFechaFiltro] = useState('');
   const [mensaje, setMensaje] = useState('');
 
   useEffect(() => {
@@ -52,38 +54,66 @@ function ServiciosPanel({
   const puedeCancelarOReprogramar = (estado: string) =>
     ['pendiente', 'en_camino', 'no_realizado'].includes(estado);
 
-  return (
-    <div>
-      <h2>Servicios</h2>
-      {mensaje && <p style={{ color: 'red' }}>{mensaje}</p>}
+  const serviciosVisibles = fechaFiltro
+    ? servicios.filter((s) => s.fecha_hora.startsWith(fechaFiltro))
+    : servicios;
 
-      {servicios.length === 0 ? (
-        <p>No hay servicios cargados todavía.</p>
+  return (
+    <section className={tarjeta}>
+      <h2 className={titulo}>Servicios</h2>
+
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+        <label className="text-sm font-medium text-gray-700">Filtrar por día</label>
+        <input
+          type="date"
+          className={`${campo} sm:w-auto`}
+          value={fechaFiltro}
+          onChange={(e) => setFechaFiltro(e.target.value)}
+        />
+        {fechaFiltro && (
+          <button onClick={() => setFechaFiltro('')} className={botonChico}>
+            Ver todos
+          </button>
+        )}
+        <span className="text-sm text-gray-600">
+          Mostrando {serviciosVisibles.length} de {servicios.length}
+        </span>
+      </div>
+
+      {mensaje && <p className="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">{mensaje}</p>}
+
+      {serviciosVisibles.length === 0 ? (
+        <p className="text-sm text-gray-600">No hay servicios para mostrar.</p>
       ) : (
-        <ul>
-          {servicios.map((s) => (
-            <li key={s.id} style={{ marginBottom: '16px' }}>
-              <strong>{s.cliente_nombre}</strong> — {s.direccion}
-              <br />
-              {formatearFechaHora(s.fecha_hora)} ({s.duracion_minutos} min) — estado: {s.estado}
-              <br />
-              Técnico: {s.tecnico_email || 'sin asignar'}
+        <ul className="space-y-3">
+          {serviciosVisibles.map((s) => (
+            <li key={s.id} className="space-y-2 rounded-lg border border-gray-200 p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="font-semibold">{s.cliente_nombre}</p>
+                  <p className="text-sm text-gray-600">{s.direccion}</p>
+                </div>
+                <span className={claseEstado(s.estado)}>{nombreEstado[s.estado] ?? s.estado}</span>
+              </div>
+
+              <p className="text-sm text-gray-700">
+                {formatearFechaHora(s.fecha_hora)} · {s.duracion_minutos} min · Técnico:{' '}
+                {s.tecnico_email || 'sin asignar'}
+              </p>
+
               {s.motivo_no_realizado && (
-                <>
-                  <br />
+                <p className="rounded-lg bg-orange-50 p-2 text-sm text-orange-800">
                   Motivo no realizado: {s.motivo_no_realizado}
-                </>
+                </p>
               )}
               {s.observaciones && (
-                <>
-                  <br />
-                  Observaciones: {s.observaciones}
-                </>
+                <p className="rounded-lg bg-gray-50 p-2 text-sm text-gray-700">Observaciones: {s.observaciones}</p>
               )}
 
               {puedeAsignar(s.estado) && (
-                <div>
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <select
+                    className={campo}
                     value={tecnicoPorServicio[s.id] || ''}
                     onChange={(e) => setTecnicoPorServicio({ ...tecnicoPorServicio, [s.id]: e.target.value })}
                   >
@@ -94,19 +124,24 @@ function ServiciosPanel({
                       </option>
                     ))}
                   </select>
-                  <button onClick={() => handleAsignar(s)}>{s.tecnico_id ? 'Reasignar' : 'Asignar'}</button>
+                  <button onClick={() => handleAsignar(s)} className={`${boton} sm:whitespace-nowrap`}>
+                    {s.tecnico_id ? 'Reasignar' : 'Asignar'}
+                  </button>
                 </div>
               )}
 
               {puedeCancelarOReprogramar(s.estado) && (
-                <div>
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <input
                     type="datetime-local"
+                    className={campo}
                     value={fechaPorServicio[s.id] || ''}
                     onChange={(e) => setFechaPorServicio({ ...fechaPorServicio, [s.id]: e.target.value })}
                   />
-                  <button onClick={() => handleReprogramar(s)}>Reprogramar</button>
-                  <button onClick={() => handleCancelar(s)} style={{ marginLeft: '10px' }}>
+                  <button onClick={() => handleReprogramar(s)} className={`${boton} sm:whitespace-nowrap`}>
+                    Reprogramar
+                  </button>
+                  <button onClick={() => handleCancelar(s)} className={botonPeligro}>
                     Cancelar
                   </button>
                 </div>
@@ -115,7 +150,7 @@ function ServiciosPanel({
           ))}
         </ul>
       )}
-    </div>
+    </section>
   );
 }
 
