@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { obtenerNotificaciones, marcarNotificacionesLeidas } from './api';
 import { formatearInstante } from './fechas';
+import { tarjeta, botonChico } from './estilos';
 
 function Notificaciones({ token, onNuevas }: { token: string; onNuevas?: () => void }) {
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
@@ -45,21 +46,34 @@ function Notificaciones({ token, onNuevas }: { token: string; onNuevas?: () => v
 
   return (
     <div>
-      <button onClick={() => setAbierto(!abierto)}>
-        Notificaciones{noLeidas > 0 ? ` (${noLeidas})` : ''}
+      <button onClick={() => setAbierto(!abierto)} className={botonChico}>
+        Notificaciones
+        {noLeidas > 0 && (
+          <span className="ml-2 rounded-full bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">
+            {noLeidas}
+          </span>
+        )}
       </button>
 
       {abierto && (
-        <div>
+        <div className={`${tarjeta} mt-2 space-y-2`}>
           {notificaciones.length === 0 ? (
-            <p>No tenés notificaciones.</p>
+            <p className="text-sm text-gray-600">No tenés notificaciones.</p>
           ) : (
             <>
-              {noLeidas > 0 && <button onClick={handleMarcarTodas}>Marcar todas como leídas</button>}
-              <ul>
+              {noLeidas > 0 && (
+                <button onClick={handleMarcarTodas} className={botonChico}>
+                  Marcar todas como leídas
+                </button>
+              )}
+              <ul className="divide-y divide-gray-100">
                 {notificaciones.map((n) => (
-                  <li key={n.id} style={{ fontWeight: n.leida ? 'normal' : 'bold' }}>
-                    {formatearInstante(n.creada_en)} — {n.mensaje}
+                  <li
+                    key={n.id}
+                    className={`py-2 text-sm ${n.leida ? 'text-gray-600' : 'font-semibold text-gray-900'}`}
+                  >
+                    <span className="block text-xs font-normal text-gray-500">{formatearInstante(n.creada_en)}</span>
+                    {n.mensaje}
                   </li>
                 ))}
               </ul>
