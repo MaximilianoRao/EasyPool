@@ -78,6 +78,8 @@ El valor agregado del desarrollo a medida no se considerará demostrado de antem
 
 - **Despliegue: Contenedores (Docker)** en una PaaS (Plataforma como Servicio). Docker asegura que la aplicación funcione igual en desarrollo y producción, mientras que una PaaS reduce la complejidad operativa inicial.
 
+- **Estilos:** Tailwind CSS (clases utilitarias). No estaba en la propuesta original: se incorporó en la etapa final para cumplir con la interfaz responsiva prometida (uso desde el teléfono del técnico) sin mantener hojas de estilo propias. Se usa un conjunto chico de clases compartidas (`frontend/src/estilos.ts`) y no se buscó un diseño elaborado, priorizando el núcleo funcional.
+
 **Experiencia real de cada integrante con las tecnologías propuestas:**
 
 | Tecnología | Experiencia previa |
