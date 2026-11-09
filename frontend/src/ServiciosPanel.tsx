@@ -109,6 +109,33 @@ function ServiciosPanel({
                 {s.tecnico_email || 'sin asignar'}
               </p>
 
+              {(s.llegada_latitud != null || s.fin_latitud != null) && (
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                  {s.llegada_latitud != null && (
+                    <a
+                      href={`https://www.google.com/maps?q=${s.llegada_latitud},${s.llegada_longitud}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-700 underline"
+                    >
+                      Ver ubicación de llegada
+                      {s.llegada_precision ? ` (±${Math.round(s.llegada_precision)} m)` : ''}
+                    </a>
+                  )}
+                  {s.fin_latitud != null && (
+                    <a
+                      href={`https://www.google.com/maps?q=${s.fin_latitud},${s.fin_longitud}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-700 underline"
+                    >
+                      Ver ubicación de finalización
+                      {s.fin_precision ? ` (±${Math.round(s.fin_precision)} m)` : ''}
+                    </a>
+                  )}
+                </div>
+              )}
+
               {s.motivo_no_realizado && (
                 <p className="rounded-lg bg-orange-50 p-2 text-sm text-orange-800">
                   Motivo no realizado: {s.motivo_no_realizado}

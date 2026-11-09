@@ -548,12 +548,24 @@ app.patch('/servicios/:id/reprogramar', verificarToken, verificarRol('administra
 app.get('/servicios', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
   try {
     const resultado = await pool.query(
-      `SELECT s.*, u.direccion, c.nombre AS cliente_nombre, t.email AS tecnico_email
-       FROM servicio s
-       JOIN ubicacion u ON u.id = s.ubicacion_id
-       JOIN cliente c ON c.id = u.cliente_id
-       LEFT JOIN usuario t ON t.id = s.tecnico_id
-       ORDER BY s.fecha_hora`
+      `SELECT s.*, u.direccion, c.nombre AS cliente_nombre, t.email AS tecnico_email,
+              ll.latitud AS llegada_latitud, ll.longitud AS llegada_longitud, ll.precision_metros AS llegada_precision,
+              fi.latitud AS fin_latitud, fi.longitud AS fin_longitud, fi.precision_metros AS fin_precision
+      FROM servicio s
+      JOIN ubicacion u ON u.id = s.ubicacion_id
+      JOIN cliente c ON c.id = u.cliente_id
+      LEFT JOIN usuario t ON t.id = s.tecnico_id
+      LEFT JOIN LATERAL (
+        SELECT latitud, longitud, precision_metros FROM historial_estado
+        WHERE servicio_id = s.id AND estado_nuevo = 'en_servicio' AND latitud IS NOT NULL
+        ORDER BY timestamp DESC LIMIT 1
+      ) ll ON true
+      LEFT JOIN LATERAL (
+        SELECT latitud, longitud, precision_metros FROM historial_estado
+        WHERE servicio_id = s.id AND estado_nuevo = 'finalizado' AND latitud IS NOT NULL
+        ORDER BY timestamp DESC LIMIT 1
+      ) fi ON true
+      ORDER BY s.fecha_hora`
     );
 
     res.json(resultado.rows);
