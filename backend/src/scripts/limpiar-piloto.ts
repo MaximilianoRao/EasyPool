@@ -31,6 +31,14 @@ async function limpiarPiloto() {
     await conexion.query(`DELETE FROM plan_mantenimiento WHERE ubicacion_id IN (${UBICACIONES_PILOTO})`);
     await conexion.query(`DELETE FROM ubicacion WHERE cliente_id IN (${CLIENTES_PILOTO})`);
     await conexion.query(`DELETE FROM cliente WHERE nombre LIKE 'Cliente Piloto %'`);
+    await conexion.query(`DELETE FROM cliente WHERE nombre LIKE 'Cliente Piloto %'`);
+        // Servicios ajenos al piloto que quedaron asignados a un técnico del piloto: se liberan
+    const liberados = await conexion.query(
+      `UPDATE servicio SET tecnico_id = NULL WHERE tecnico_id IN (${TECNICOS_PILOTO})`
+    );
+    if ((liberados.rowCount ?? 0) > 0) {
+      console.warn(`Atención: se desasignaron ${liberados.rowCount} servicios ajenos al piloto.`);
+    }
     await conexion.query(
       `DELETE FROM historial_estado
        WHERE actor_id IN (${TECNICOS_PILOTO})
