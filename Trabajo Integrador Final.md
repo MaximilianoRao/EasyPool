@@ -92,6 +92,7 @@ El valor agregado del desarrollo a medida no se considerará demostrado de antem
 ### Testing
 
 Para las pruebas del backend se incorporó **Jest** (framework de testing) junto con **Supertest** (simula pedidos HTTP contra los endpoints sin necesidad de levantar un servidor real). Es la combinación estándar del ecosistema Node/Express.
+Al cierre del proyecto, el backend cuenta con **78 pruebas automatizadas** (10 suites), ejecutadas con `pnpm test` y todas aprobadas. Cubren autenticación, permisos por rol, transiciones de estado (incluido No Realizado y el registro de ubicación), bloqueo optimista, reasignación con historial, recurrencia idempotente, superposición de agenda, notificaciones, ruta sugerida y formato de fechas.
 
 ### Justificación de la elección
 
@@ -484,7 +485,7 @@ Los horarios de agenda de los servicios (`fecha_hora`, `fecha_anterior`, `fecha_
 - **Asignación y Estados**: asignación de técnico a servicio, transición entre estados, historial de cambios.
 - **Planes de Mantenimiento** *(posterior al 27/09)*: definición de recurrencia y generación automática de servicios.
 - **Rutas**: cálculo de orden de visita por distancia entre ubicaciones asignadas a un técnico.
-- **Ubicación y Evidencia**: registro de coordenadas y evidencia del servicio en los momentos definidos (En servicio / Finalizado / No Realizado).
+- **Ubicación y Evidencia**: registro de la ubicación del celular al llegar (En servicio) y al finalizar (Finalizado), y de la evidencia básica del servicio (estado final, fecha y hora, técnico, motivo si corresponde). En "No Realizado" se registra la evidencia, pero no la ubicación.
 - **Notificaciones**: aviso dentro de la aplicación ante cambios relevantes (asignación, reasignación, reprogramación, cancelación y No Realizado).
 
 ### Autorización
@@ -598,6 +599,8 @@ Un integrante del equipo, actuando como técnico, puede realizar un servicio com
 teléfono móvil real. Esto valida que la interfaz funciona correctamente en un
 dispositivo físico, no que fue probada por un técnico real de una empresa.
 
+> **Sprint 3 extendido:** además de lo previsto, se incorporó una ronda de correcciones del tutor (autorización por rol, concurrencia, máquina de estados, recurrencia idempotente y superposición de agenda). Por eso parte de la interfaz del técnico (detalle del servicio, observaciones y agenda del día) se completó recién a partir del 19/10, ya durante el Sprint 4.
+
 ---
 **Sprint 4 — Rutas y notificaciones**
 
@@ -627,18 +630,20 @@ Técnico modifica estado
 Administrador lo ve
 ```
 
+> **Estado:** ruta sugerida y notificaciones dentro de la aplicación, cumplidas. La interfaz responsiva con Tailwind CSS se incorporó a fines de octubre.
+
 ---
 **Sprint 5 — Piloto**
 
-26/10 al 8/11
+26/10 al 12/11
 
-En estas semanas no se agregan funcionalidades.
+Antes de ejecutar el piloto se completaron la interfaz responsiva y el registro mínimo de ubicación al llegar y al finalizar, prometido en el Alcance del MVP. Una vez cargados los datos del piloto no se agregaron funcionalidades.
 
 Se realizará:
 
 - carga de datos y usuarios simulados (5 técnicos, 20 servicios/día);
 - ejecución del flujo completo end-to-end mediante el sistema;
-- simulación manual del proceso actual (Excel + WhatsApp) con el mismo escenario de datos y la misma carga (5 técnicos, 20 servicios/día), ejecutada por el propio equipo, para contar con un punto de comparación;
+- simulación manual del proceso actual (Excel + WhatsApp) con el mismo escenario de datos y la misma carga (5 técnicos, 20 servicios/día), ejecutada por una única persona que interpretó todos los roles (administrador y técnicos), con respuestas simuladas, para contar con un punto de comparación;
 - medición de tiempos y cantidad de incidencias de coordinación en ambos procesos (manual simulado vs. sistema);
 - pruebas y corrección de errores;
 - revisión interna del equipo a modo de control de calidad, en reemplazo del feedback de usuarios reales.
@@ -786,3 +791,22 @@ Los cambios quedan centralizados y trazables
                     ↓
 (Pendiente, requiere piloto real) → ahorro de tiempo, adopción y reducción de errores en contexto real
 ```
+
+
+## Decisiones técnicas conscientes
+
+Estas decisiones simplifican el MVP y se tomaron a propósito. Cada una tiene un límite conocido:
+
+- **Sesión con JWT guardado en localStorage**, por simplicidad. En producción se evaluaría una cookie `httpOnly`.
+- **CORS abierto** en el backend, aceptable para un MVP sin datos reales. En producción se restringiría a los orígenes del frontend.
+- **Generación de servicios recurrentes disparada a mano** desde la pantalla de planes, y no por una tarea programada.
+- **Coordenadas cargadas a mano** y distancia en línea recta (Haversine), sin servicio externo de mapas.
+- **Backend en un plan gratuito de Render**, que se duerme tras un período sin uso; la primera respuesta puede tardar hasta un minuto.
+
+## Trabajo futuro
+
+- Ruteo con un servicio externo de mapas y ventanas horarias.
+- Notificaciones push o por correo.
+- Generación automática y programada de servicios recurrentes.
+- Ubicación: cálculo de distancia al domicilio del servicio, política de retención y borrado de las coordenadas, y registro de ubicación en "No Realizado".
+- Validación con una empresa real: adopción por técnicos reales y ahorro de tiempo medido.
