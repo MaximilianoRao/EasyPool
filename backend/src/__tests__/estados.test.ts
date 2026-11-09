@@ -255,4 +255,103 @@ describe('Transiciones de estado y bloqueo optimista', () => {
     expect(encontrado.tecnico_email).toBe(emailTecnico);
   });
 
+    async function crearServicioEnCamino() {
+    const { cliente, ubicacion } = await crearClienteConUbicacion(tokenAdmin);
+    const tecnicoId = (await pool.query('SELECT id FROM usuario WHERE email = $1', [emailTecnico])).rows[0].id;
+    const nuevo = await crearServicioDePrueba(tokenAdmin, ubicacion.id);
+    const asignado = await asignarTecnicoDePrueba(tokenAdmin, nuevo.id, tecnicoId, nuevo.version);
+
+    const enCamino = await request(app)
+      .patch(`/servicios/${asignado.id}/estado`)
+      .set('Authorization', `Bearer ${tokenTecnico}`)
+      .send({ estado: 'en_camino', version: asignado.version });
+
+    return { clienteId: cliente.id, servicio: enCamino.body };
+  }
+
+  it('registra la ubicación cuando el técnico llega (en_servicio)', async () => {
+    const { clienteId, servicio: enCamino } = await crearServicioEnCamino();
+
+    const respuesta = await request(app)
+      .patch(`/servicios/${enCamino.id}/estado`)
+      .set('Authorization', `Bearer ${tokenTecnico}`)
+      .send({
+        estado: 'en_servicio',
+        version: enCamino.version,
+        ubicacion: { latitud: -31.42, longitud: -64.19, precision: 12 },
+      });
+
+    expect(respuesta.status).toBe(200);
+
+    const historial = await pool.query(
+      `SELECT latitud, longitud, precision_metros FROM historial_estado
+       WHERE servicio_id = $1 AND estado_nuevo = 'en_servicio'`,
+      [enCamino.id]
+    );
+    expect(historial.rows[0].latitud).toBe(-31.42);
+    expect(historial.rows[0].longitud).toBe(-64.19);
+    expect(historial.rows[0].precision_metros).toBe(12);
+
+    await borrarClienteCompleto(clienteId);
+  });
+
+  it('descarta la ubicación en cualquier cambio que no sea llegada o finalización', async () => {
+    const { cliente, ubicacion } = await crearClienteConUbicacion(tokenAdmin);
+    const tecnicoId = (await pool.query('SELECT id FROM usuario WHERE email = $1', [emailTecnico])).rows[0].id;
+    const nuevo = await crearServicioDePrueba(tokenAdmin, ubicacion.id);
+    const asignado = await asignarTecnicoDePrueba(tokenAdmin, nuevo.id, tecnicoId, nuevo.version);
+
+    const respuesta = await request(app)
+      .patch(`/servicios/${asignado.id}/estado`)
+      .set('Authorization', `Bearer ${tokenTecnico}`)
+      .send({
+        estado: 'en_camino',
+        version: asignado.version,
+        ubicacion: { latitud: -31.42, longitud: -64.19 },
+      });
+
+    expect(respuesta.status).toBe(200);
+
+    const historial = await pool.query(
+      `SELECT latitud, longitud FROM historial_estado WHERE servicio_id = $1 AND estado_nuevo = 'en_camino'`,
+      [asignado.id]
+    );
+    expect(historial.rows[0].latitud).toBeNull();
+    expect(historial.rows[0].longitud).toBeNull();
+
+    await borrarClienteCompleto(cliente.id);
+  });
+
+  it('rechaza una ubicación fuera de rango (400)', async () => {
+    const { clienteId, servicio: enCamino } = await crearServicioEnCamino();
+
+    const respuesta = await request(app)
+      .patch(`/servicios/${enCamino.id}/estado`)
+      .set('Authorization', `Bearer ${tokenTecnico}`)
+      .send({ estado: 'en_servicio', version: enCamino.version, ubicacion: { latitud: 200, longitud: 0 } });
+
+    expect(respuesta.status).toBe(400);
+    await borrarClienteCompleto(clienteId);
+  });
+
+  it('si el técnico no comparte la ubicación, el cambio de estado funciona igual', async () => {
+    const { clienteId, servicio: enCamino } = await crearServicioEnCamino();
+
+    const respuesta = await request(app)
+      .patch(`/servicios/${enCamino.id}/estado`)
+      .set('Authorization', `Bearer ${tokenTecnico}`)
+      .send({ estado: 'en_servicio', version: enCamino.version });
+
+    expect(respuesta.status).toBe(200);
+
+    const historial = await pool.query(
+      `SELECT latitud FROM historial_estado WHERE servicio_id = $1 AND estado_nuevo = 'en_servicio'`,
+      [enCamino.id]
+    );
+    expect(historial.rows[0].latitud).toBeNull();
+
+    await borrarClienteCompleto(clienteId);
+  });
+
+
 });
