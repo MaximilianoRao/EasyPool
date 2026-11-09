@@ -307,7 +307,7 @@ app.get('/mis-servicios', verificarToken, verificarRol('tecnico'), async (req: R
 
 app.patch('/servicios/:id/estado', verificarToken, verificarRol('tecnico'), async (req: RequestConUsuario, res: Response) => {
   const { id } = req.params;
-  const { estado, version, motivo } = req.body;
+  const { estado, version, motivo, ubicacion } = req.body;
   const tecnicoId = req.usuario?.id;
 
   try {
@@ -336,6 +336,26 @@ app.patch('/servicios/:id/estado', verificarToken, verificarRol('tecnico'), asyn
       return;
     }
 
+
+    let ubicacionRegistrada: { latitud: number; longitud: number; precision: number | null } | null = null;
+
+    if (ubicacion !== undefined && ubicacion !== null) {
+      const { latitud, longitud, precision } = ubicacion;
+      const valida =
+        typeof latitud === 'number' && latitud >= -90 && latitud <= 90 &&
+        typeof longitud === 'number' && longitud >= -180 && longitud <= 180 &&
+        (precision === undefined || precision === null || (typeof precision === 'number' && precision >= 0));
+
+      if (!valida) {
+        res.status(400).json({ error: 'La ubicación enviada no es válida' });
+        return;
+      }
+
+      if (estado === 'en_servicio' || estado === 'finalizado') {
+        ubicacionRegistrada = { latitud, longitud, precision: precision ?? null };
+      }
+    }
+
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
@@ -352,8 +372,19 @@ app.patch('/servicios/:id/estado', verificarToken, verificarRol('tecnico'), asyn
       }
 
       await client.query(
-        `INSERT INTO historial_estado (servicio_id, estado_anterior, estado_nuevo, actor_id, motivo) VALUES ($1, $2, $3, $4, $5)`,
-        [id, servicio.estado, estado, tecnicoId, estado === 'no_realizado' ? motivo : null]
+        `INSERT INTO historial_estado
+           (servicio_id, estado_anterior, estado_nuevo, actor_id, motivo, latitud, longitud, precision_metros)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [
+          id,
+          servicio.estado,
+          estado,
+          tecnicoId,
+          estado === 'no_realizado' ? motivo : null,
+          ubicacionRegistrada?.latitud ?? null,
+          ubicacionRegistrada?.longitud ?? null,
+          ubicacionRegistrada?.precision ?? null,
+        ]
       );
 
       if (estado === 'no_realizado') {
@@ -517,12 +548,24 @@ app.patch('/servicios/:id/reprogramar', verificarToken, verificarRol('administra
 app.get('/servicios', verificarToken, verificarRol('administrador'), async (req: RequestConUsuario, res: Response) => {
   try {
     const resultado = await pool.query(
-      `SELECT s.*, u.direccion, c.nombre AS cliente_nombre, t.email AS tecnico_email
-       FROM servicio s
-       JOIN ubicacion u ON u.id = s.ubicacion_id
-       JOIN cliente c ON c.id = u.cliente_id
-       LEFT JOIN usuario t ON t.id = s.tecnico_id
-       ORDER BY s.fecha_hora`
+      `SELECT s.*, u.direccion, c.nombre AS cliente_nombre, t.email AS tecnico_email,
+              ll.latitud AS llegada_latitud, ll.longitud AS llegada_longitud, ll.precision_metros AS llegada_precision,
+              fi.latitud AS fin_latitud, fi.longitud AS fin_longitud, fi.precision_metros AS fin_precision
+      FROM servicio s
+      JOIN ubicacion u ON u.id = s.ubicacion_id
+      JOIN cliente c ON c.id = u.cliente_id
+      LEFT JOIN usuario t ON t.id = s.tecnico_id
+      LEFT JOIN LATERAL (
+        SELECT latitud, longitud, precision_metros FROM historial_estado
+        WHERE servicio_id = s.id AND estado_nuevo = 'en_servicio' AND latitud IS NOT NULL
+        ORDER BY timestamp DESC LIMIT 1
+      ) ll ON true
+      LEFT JOIN LATERAL (
+        SELECT latitud, longitud, precision_metros FROM historial_estado
+        WHERE servicio_id = s.id AND estado_nuevo = 'finalizado' AND latitud IS NOT NULL
+        ORDER BY timestamp DESC LIMIT 1
+      ) fi ON true
+      ORDER BY s.fecha_hora`
     );
 
     res.json(resultado.rows);

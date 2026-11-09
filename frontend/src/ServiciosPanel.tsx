@@ -17,38 +17,45 @@ function ServiciosPanel({
   const [fechaPorServicio, setFechaPorServicio] = useState<Record<number, string>>({});
   const [fechaFiltro, setFechaFiltro] = useState('');
   const [mensaje, setMensaje] = useState('');
+  const [exito, setExito] = useState('');
 
   useEffect(() => {
     obtenerTecnicos(token).then(setTecnicos).catch(console.error);
   }, [token]);
 
-  async function ejecutar(accion: () => Promise<unknown>) {
-    setMensaje('');
-    try {
-      await accion();
-    } catch (err: any) {
-      setMensaje(err.message || 'No se pudo completar la operación.');
-    }
-    onCambio();
+  async function ejecutar(accion: () => Promise<unknown>, textoExito: string) {
+  setMensaje('');
+  setExito('');
+  try {
+    await accion();
+    setExito(textoExito);
+  } catch (err: any) {
+    setMensaje(err.message || 'No se pudo completar la operación.');
+  }
+  onCambio();
   }
 
   function handleAsignar(s: any) {
-    const tecnicoId = tecnicoPorServicio[s.id];
-    if (!tecnicoId) return;
-    ejecutar(() => asignarTecnico(token, s.id, Number(tecnicoId), s.version));
+  const tecnicoId = tecnicoPorServicio[s.id];
+  if (!tecnicoId) return;
+  ejecutar(
+    () => asignarTecnico(token, s.id, Number(tecnicoId), s.version),
+    s.tecnico_id ? 'Servicio reasignado correctamente.' : 'Técnico asignado correctamente.'
+  );
   }
 
   function handleReprogramar(s: any) {
     const fecha = fechaPorServicio[s.id];
     if (!fecha) return;
-    ejecutar(() => reprogramarServicio(token, s.id, s.version, fecha));
+    ejecutar(() => reprogramarServicio(token, s.id, s.version, fecha), 'Servicio reprogramado correctamente.');
   }
 
   function handleCancelar(s: any) {
     const motivo = window.prompt('Motivo de la cancelación (opcional):');
     if (motivo === null) return;
-    ejecutar(() => cancelarServicio(token, s.id, s.version, motivo));
+    ejecutar(() => cancelarServicio(token, s.id, s.version, motivo), 'Servicio cancelado.');
   }
+
 
   const puedeAsignar = (estado: string) => estado === 'pendiente' || estado === 'en_camino';
   const puedeCancelarOReprogramar = (estado: string) =>
@@ -80,7 +87,8 @@ function ServiciosPanel({
         </span>
       </div>
 
-      {mensaje && <p className="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">{mensaje}</p>}
+      {mensaje && <p className="sticky top-2 z-10 mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-700 shadow">{mensaje}</p>}
+      {exito && <p className="sticky top-2 z-10 mb-3 rounded-lg bg-green-50 p-3 text-sm text-green-800 shadow">{exito}</p>}
 
       {serviciosVisibles.length === 0 ? (
         <p className="text-sm text-gray-600">No hay servicios para mostrar.</p>
@@ -100,6 +108,33 @@ function ServiciosPanel({
                 {formatearFechaHora(s.fecha_hora)} · {s.duracion_minutos} min · Técnico:{' '}
                 {s.tecnico_email || 'sin asignar'}
               </p>
+
+              {(s.llegada_latitud != null || s.fin_latitud != null) && (
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                  {s.llegada_latitud != null && (
+                    <a
+                      href={`https://www.google.com/maps?q=${s.llegada_latitud},${s.llegada_longitud}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-700 underline"
+                    >
+                      Ver ubicación de llegada
+                      {s.llegada_precision ? ` (±${Math.round(s.llegada_precision)} m)` : ''}
+                    </a>
+                  )}
+                  {s.fin_latitud != null && (
+                    <a
+                      href={`https://www.google.com/maps?q=${s.fin_latitud},${s.fin_longitud}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-700 underline"
+                    >
+                      Ver ubicación de finalización
+                      {s.fin_precision ? ` (±${Math.round(s.fin_precision)} m)` : ''}
+                    </a>
+                  )}
+                </div>
+              )}
 
               {s.motivo_no_realizado && (
                 <p className="rounded-lg bg-orange-50 p-2 text-sm text-orange-800">

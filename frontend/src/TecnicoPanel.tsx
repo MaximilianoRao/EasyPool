@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { obtenerMisServicios, cambiarEstado, marcarNoRealizado, guardarObservaciones } from './api';
 import Notificaciones from './Notificaciones';
 import { formatearFechaHora } from './fechas';
+import { obtenerUbicacion } from './ubicacion';
 import { boton, botonSecundario, botonPeligro, tarjeta, claseEstado, nombreEstado } from './estilos';
+
 
 const siguienteEstado: Record<string, string> = {
   pendiente: 'en_camino',
@@ -26,6 +28,7 @@ function TecnicoPanel({ token }: { token: string }) {
   const [servicios, setServicios] = useState<any[]>([]);
   const [error, setError] = useState('');
   const [soloHoy, setSoloHoy] = useState(true);
+  const [obteniendoUbicacion, setObteniendoUbicacion] = useState(false);
 
   async function cargar() {
     try {
@@ -40,19 +43,28 @@ function TecnicoPanel({ token }: { token: string }) {
     cargar();
   }, [token]);
 
-  async function handleCambiarEstado(servicio: any) {
-    setError('');
-    const nuevoEstado = siguienteEstado[servicio.estado];
-    if (!nuevoEstado) return;
+async function handleCambiarEstado(servicio: any) {
+  setError('');
+  const nuevoEstado = siguienteEstado[servicio.estado];
+  if (!nuevoEstado) return;
 
-    try {
-      await cambiarEstado(token, servicio.id, nuevoEstado, servicio.version);
-      await cargar();
-    } catch (err: any) {
-      setError(mensajeDeError(err, 'No se pudo cambiar el estado'));
-      await cargar(); // por si el error es de versión desactualizada, traemos el estado real
+  try {
+    // La ubicación se pide solo al llegar y al finalizar, nunca en segundo plano
+    let ubicacion = null;
+    if (nuevoEstado === 'en_servicio' || nuevoEstado === 'finalizado') {
+      setObteniendoUbicacion(true);
+      ubicacion = await obtenerUbicacion();
+      setObteniendoUbicacion(false);
     }
+
+    await cambiarEstado(token, servicio.id, nuevoEstado, servicio.version, ubicacion);
+    await cargar();
+  } catch (err: any) {
+    setObteniendoUbicacion(false);
+    setError(mensajeDeError(err, 'No se pudo cambiar el estado'));
+    await cargar(); // por si el error es de versión desactualizada, traemos el estado real
   }
+}
 
   async function handleNoRealizado(servicio: any) {
     setError('');
@@ -92,6 +104,9 @@ function TecnicoPanel({ token }: { token: string }) {
       <Notificaciones token={token} onNuevas={cargar} />
 
       <h2 className="text-xl font-semibold">Mis servicios</h2>
+      <p className="rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
+        La ubicación del celular se registra solo dos veces por servicio: al tocar «Marcar en servicio» y al tocar «Finalizar servicio». No hay seguimiento continuo.
+      </p>      
 
       {error && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
 
@@ -150,8 +165,12 @@ function TecnicoPanel({ token }: { token: string }) {
 
               <div className="flex flex-col gap-2 pt-1">
                 {siguienteEstado[s.estado] && (
-                  <button onClick={() => handleCambiarEstado(s)} className={`${boton} w-full`}>
-                    {textoBoton[s.estado]}
+                  <button
+                    onClick={() => handleCambiarEstado(s)}
+                    disabled={obteniendoUbicacion}
+                    className={`${boton} w-full disabled:opacity-60`}
+                  >
+                    {obteniendoUbicacion ? 'Obteniendo ubicación…' : textoBoton[s.estado]}
                   </button>
                 )}
 

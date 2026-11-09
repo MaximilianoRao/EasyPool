@@ -169,11 +169,17 @@ export async function marcarNoRealizado(token: string, servicioId: number, motiv
   return respuesta.json();
 }
 
-export async function cambiarEstado(token: string, servicioId: number, estado: string, version: number) {
+export async function cambiarEstado(
+  token: string,
+  servicioId: number,
+  estado: string,
+  version: number,
+  ubicacion?: { latitud: number; longitud: number; precision?: number } | null
+) {
   const respuesta = await fetch(`${API_URL}/servicios/${servicioId}/estado`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ estado, version }),
+    body: JSON.stringify({ estado, version, ubicacion: ubicacion ?? undefined }),
   });
 
   if (!respuesta.ok) {

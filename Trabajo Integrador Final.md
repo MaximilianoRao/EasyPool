@@ -206,6 +206,8 @@ Pendiente → En camino → En servicio → Finalizado
 - ≥90% de los servicios finalizados tienen su estado actualizado.
 - El técnico puede completar la actualización en menos de 30 segundos.
 
+Nota sobre la medición: el cambio a "En servicio" y a "Finalizado" incluye la solicitud de ubicación del celular (con un tiempo máximo de espera), por lo que los tiempos medidos para esas operaciones incorporan ese paso, que es la condición real de uso.
+
 **OE4 — Reducir la coordinación manual**
 
 Reducir la dependencia de WhatsApp para comunicar modificaciones operativas.
@@ -255,7 +257,7 @@ Comprobar que la aplicación funciona correctamente en computadoras y teléfonos
 - Asignación de técnico.
 - Visualización del estado de los servicios.
 - Modificación de asignaciones.
-- Visualización de ubicación del servicio.
+- Consulta de las ubicaciones registradas por el técnico al llegar y al finalizar cada servicio (con enlace al mapa).
 - Gestión de planes de mantenimiento (alta, frecuencia, pausa/baja)
 
 **Técnico**
@@ -272,7 +274,7 @@ Desde celular:
   - Finalizado
   - No realizado, indicando motivo (alternativa a Finalizado cuando el servicio no pudo completarse)
 * Registrar observación.
-* Registrar evidencia básica del servicio mediante el estado final (Finalizado o No realizado), fecha y hora del registro, técnico responsable, motivo si corresponde, observación opcional y ubicación registrada al finalizar cuando los permisos correspondientes estén disponibles.
+* Registrar evidencia básica del servicio mediante el estado final (Finalizado o No realizado), fecha y hora del registro, técnico responsable, motivo si corresponde, observación opcional y ubicación del celular registrada al llegar (En servicio) y al finalizar (Finalizado), cuando el técnico otorga el permiso correspondiente.
 
 **Cliente**
 
@@ -321,15 +323,18 @@ Cabe aclarar que la distancia Haversine es una aproximación en línea recta y n
 
 **Ubicación**
 
-La funcionalidad de ubicación del MVP estará limitada al registro de la posición del técnico en momentos específicos del servicio.
+La funcionalidad de ubicación del MVP se limita al registro de la posición del celular del técnico en dos momentos del servicio:
 
-- Al marcar **"En servicio"**, el sistema podrá registrar la ubicación aproximada del técnico.
-- Al marcar **"Finalizado"**, podrá registrarse nuevamente su ubicación.
-- No se realizará seguimiento continuo de la ubicación del técnico.
+- Al marcar **"En servicio"** (llegada) se registra la ubicación del celular.
+- Al marcar **"Finalizado"** se registra nuevamente.
+- En cualquier otro cambio de estado (incluido "En camino" y "No realizado") no se registra ubicación. Si el cliente la envía, el backend la descarta: la ausencia de seguimiento es una propiedad del sistema, no solo de la interfaz.
+- No se realiza seguimiento continuo ni en segundo plano.
 
-El registro de coordenadas se utilizará como evidencia temporal y geográfica del servicio realizado.
+Cada registro guarda latitud, longitud y precisión estimada en el historial del cambio de estado. Solo el administrador puede consultarlo, mediante enlaces a un mapa. La aplicación informa al técnico, en su pantalla, cuándo se registra su ubicación.
 
-El acceso a esta información estará limitado a los usuarios autorizados. La implementación deberá contemplar los permisos necesarios del dispositivo e informar al técnico cuándo se registra su ubicación.
+Si el técnico no concede el permiso, o el dispositivo no puede obtener la posición dentro de un tiempo máximo, el cambio de estado se realiza igual y queda sin ubicación: el registro nunca bloquea el trabajo.
+
+*Alcance y limitaciones.* La ubicación es un dato de apoyo, no una prueba concluyente: la precisión depende del dispositivo (en una computadora sin GPS puede ser de varios cientos de metros, y así se muestra al administrador). El sistema no verifica que la posición coincida con el domicilio del servicio. En el piloto simulado se verifica que la ubicación se registre, se almacene solo en los dos momentos definidos y se visualice, pero no que sea geográficamente correcta, ya que los domicilios son ficticios. Quedan fuera del MVP, como trabajo futuro: cálculo de distancia al domicilio, política de retención y borrado de estos datos, y registro de ubicación en "No realizado".
 
 
 **No incluye**
@@ -673,7 +678,7 @@ Definir el reemplazo antes de construir funcionalidad adicional sobre la tecnolo
 
 El equipo puede terminar desarrollando:
 
-- GPS;
+- Seguimiento GPS continuo (el MVP solo registra la ubicación al llegar y al finalizar);
 - IA;
 - WhatsApp;
 - rutas dinámicas;
@@ -758,6 +763,7 @@ Dado que el proyecto finaliza con un piloto simulado y no con un piloto de campo
 - El técnico puede completar el ciclo completo de un servicio (consultar → cambiar estado → finalizar) en el entorno de prueba, sin asistencia del administrador y sin formularios extensos.
 - Los cambios cargados por el administrador se reflejan correctamente en la agenda del técnico dentro del sistema, sin necesidad de comunicación manual adicional.
 - El sistema soporta el escenario asumido (5 técnicos, 20 servicios/día) sin errores funcionales ni pérdida de información.
+- La ubicación del celular se registra únicamente al llegar y al finalizar un servicio, solo el administrador puede consultarla, y su ausencia (por falta de permiso o de señal) no impide completar el servicio.
 
 ### Criterios de impacto (estimación simulada en Sprint 5; requieren validación con una empresa real para confirmarse — fuera del alcance de este entregable)
 
