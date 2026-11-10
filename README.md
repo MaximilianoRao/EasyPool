@@ -83,22 +83,31 @@ Corre en `http://localhost:5173`.
 
 ## Estado actual
 
-Recorrido vertical completo funcionando: administrador crea cliente/ubicación → crea servicio → asigna técnico → técnico inicia sesión → consulta sus servicios → cambia estado (incluyendo cancelación y reprogramación por parte del administrador) → administrador visualiza el resultado.
+## Estado actual
+
+Recorrido completo funcionando: el administrador crea cliente, ubicación y plan de mantenimiento → el sistema genera los servicios → el administrador asigna técnico → el técnico inicia sesión, consulta sus servicios y cambia el estado → el administrador visualiza el resultado, y ambos reciben avisos de los cambios.
 
 Incluye:
 - Autenticación con JWT y permisos por rol (administrador/técnico).
+- Planes de mantenimiento (semanal, quincenal, mensual) con generación automática e idempotente de servicios.
+- Asignación, reasignación, reprogramación y cancelación por parte del administrador, con control de superposición de agenda.
+- Estados del servicio cambiados por el técnico desde el celular, incluido «No realizado».
 - Bloqueo optimista para evitar conflictos de concurrencia entre administrador y técnico.
-- 38 tests automatizados (Jest + Supertest): autenticación, permisos por rol, transiciones de estado (incluyendo No Realizado y el rechazo de `reprogramado` como estado inválido), bloqueo optimista, reasignación con registro de historial, recurrencia idempotente, y validaciones de API (rangos de coordenadas, recursos inexistentes, superposición de agenda).
-- Migraciones incrementales de base de datos (`db/migrations/`).
-- Deployment funcionando: frontend y backend en Render, base de datos en Neon (ver sección "Deployment" más abajo).
+- Historial de cambios de estado con su actor.
+- Notificaciones dentro de la aplicación (consulta automática cada 30 s y al volver a la pestaña; no es tiempo real).
+- Ubicación mínima: el celular del técnico registra su posición solo al marcar «En servicio» y al finalizar, nunca de forma continua, y solo la ve el administrador. Si el técnico no da permiso, el cambio de estado igual se registra.
+- 78 tests automatizados (Jest + Supertest, 10 suites): autenticación, permisos por rol, transiciones de estado, bloqueo optimista, reasignación con historial, recurrencia idempotente, notificaciones, ubicación y validaciones de API (rangos de coordenadas, recursos inexistentes, superposición de agenda).
+- Migraciones incrementales de base de datos (`db/migrations/`, hasta la 012).
+- Deployment: frontend y backend en Render, base de datos en Neon (ver sección "Deployment").
+- Piloto simulado con datos y usuarios de prueba, medido contra el proceso manual (ver sección "Piloto simulado").
 
-Pendiente para una etapa posterior (según cronograma): recurrencia de servicios (Planes de Mantenimiento), estado "No Realizado" en la interfaz del técnico, ruteo y notificaciones.
+Fuera del alcance de este entregable: optimización automática de rutas, avisos en tiempo real (push o WebSockets) y validación con una empresa real. Ver las secciones «Decisiones técnicas conscientes» y «Trabajo futuro» de `Trabajo Integrador Final.md`.
 
-Ver `Trabajo Integrador Final.md` para el detalle del modelo de dominio, reglas de estado, alcance del MVP y cronograma.
+Ver `Trabajo Integrador Final.md` para el detalle del modelo de dominio, reglas de estado, alcance del MVP, cronograma y resultados del piloto.
 
 ## Tests
 
-El backend tiene tests automatizados (Jest + Supertest) que cubren autenticación, permisos por rol, transiciones de estado y reasignación de técnicos.
+El backend tiene 78 tests automatizados (Jest + Supertest) que cubren autenticación, permisos por rol, transiciones de estado, reasignación de técnicos, recurrencia, notificaciones y ubicación.
 
 Requieren una base de datos separada para no afectar los datos de desarrollo. Crear la base de test (una sola vez) y aplicar las migraciones:
 
@@ -115,6 +124,26 @@ Correr los tests:
 ```bash
 pnpm test
 ```
+
+## Piloto simulado
+
+El piloto usa 5 técnicos, 20 clientes y 20 servicios en un día (18 generados por planes semanales y 2 cargados a mano). Los resultados están en `Trabajo Integrador Final.md` (sección «Resultados del piloto») y los datos de respaldo en `docs/piloto/`.
+
+Los scripts se ejecutan desde `backend/` y necesitan un archivo de entorno con la conexión a la base (por ejemplo `.env.production`, que no se sube al repositorio):
+
+```bash
+# Cargar técnicos, clientes y planes del piloto (la fecha es el día de la primera visita)
+pnpm exec ts-node src/scripts/cargar-piloto.ts .env.production AAAA-MM-DD <contraseña de los técnicos>
+
+# Medir operaciones críticas contra el backend desplegado (la URL va sin barra final)
+pnpm exec ts-node src/scripts/medir-operaciones.ts <URL del backend> AAAA-MM-DD <email admin> <contraseña admin> <contraseña técnicos>
+
+# Borrar todos los datos del piloto
+pnpm exec ts-node src/scripts/limpiar-piloto.ts .env.production
+```
+
+Los técnicos del piloto son `piloto-tecnico1@easypool.com` a `piloto-tecnico5@easypool.com` y los clientes se llaman «Cliente Piloto N». Los datos del piloto se identifican por esos nombres, por eso `limpiar-piloto.ts` solo borra lo que los usa.
+
 
 ## Deployment
 
