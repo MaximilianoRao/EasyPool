@@ -637,20 +637,29 @@ Administrador lo ve
 
 26/10 al 12/11
 
-Antes de ejecutar el piloto se completaron la interfaz responsiva y el registro mínimo de ubicación al llegar y al finalizar, prometido en el Alcance del MVP. Una vez cargados los datos del piloto no se agregaron funcionalidades.
+En estas semanas no se agregan funcionalidades.
 
-Se realizará:
+Se realizó:
 
-- carga de datos y usuarios simulados (5 técnicos, 20 servicios/día);
-- ejecución del flujo completo end-to-end mediante el sistema;
-- simulación manual del proceso actual (Excel + WhatsApp) con el mismo escenario de datos y la misma carga (5 técnicos, 20 servicios/día), ejecutada por una única persona que interpretó todos los roles (administrador y técnicos), con respuestas simuladas, para contar con un punto de comparación;
-- medición de tiempos y cantidad de incidencias de coordinación en ambos procesos (manual simulado vs. sistema);
-- pruebas y corrección de errores;
-- revisión interna del equipo a modo de control de calidad, en reemplazo del feedback de usuarios reales.
+- carga de datos y usuarios simulados (5 técnicos, 20 clientes con 20 servicios en el día: 18 generados por planes semanales y 2 cargados a mano);
+- ejecución del flujo completo end-to-end mediante el sistema, con un guion de 8 cambios de agenda (3 reprogramaciones, 2 reasignaciones, 1 cancelación y 2 servicios «no realizado» informados por el técnico);
+- simulación manual del proceso actual (Excel + WhatsApp) con el mismo escenario y el mismo guion, para contar con un punto de comparación;
+- medición de tiempos y de contactos fuera del sistema en ambos procesos (2 corridas de cada uno);
+- pruebas de objetivos: consulta a la base (OE1), celular real (OE3), script de operaciones contra el backend desplegado y prueba sin conexión (OE6);
+- corrección de los errores encontrados durante el piloto.
+
+Método y declaraciones:
+
+- Lo ejecutó una sola persona, que hizo también de técnicos y clientes; las respuestas de los técnicos y clientes en el proceso manual son simuladas.
+- Se midieron dos corridas de cada proceso; entre corridas hay efecto de aprendizaje, que se declara y no se corrige.
+- La carga inicial de datos (clientes, planes, servicios) queda fuera de ambos cronómetros, porque en los dos procesos es la misma tarea.
+- Cronómetro A: planificación (asignar los 20 servicios y armar o enviar las agendas). Cronómetro B: gestión de los 8 cambios, desde el primero hasta que el último queda registrado en la pantalla del técnico.
+- Se cuenta como «contacto fuera del sistema» cada mensaje o llamada que el proceso requiere fuera de la aplicación.
+- Toda cifra que no se midió figura como «no medido».
 
 Entregable principal
 
-Demo funcional del sistema ejecutada con datos y usuarios simulados, cubriendo el flujo completo (alta de servicio → asignación → notificación → cambio de estado → finalización), con un escenario de carga equivalente a 5 técnicos y 20 servicios/día, junto con la comparación de tiempos e incidencias contra la simulación manual del proceso actual.
+Demo funcional del sistema ejecutada con datos y usuarios simulados, cubriendo el flujo completo (alta de servicio → asignación → notificación → cambio de estado → finalización), junto con la comparación de tiempos y contactos contra la simulación manual del proceso actual. Los resultados están en la sección «Resultados del piloto».
 
 ---
 
@@ -772,6 +781,8 @@ Dado que el proyecto finaliza con un piloto simulado y no con un piloto de campo
 
 ### Criterios de impacto (estimación simulada en Sprint 5; requieren validación con una empresa real para confirmarse — fuera del alcance de este entregable)
 
+Los resultados de la estimación simulada están en la sección «Resultados del piloto» (al final de este documento).
+
 - Reducción del tiempo administrativo, estimada comparando la simulación manual del proceso actual contra el uso del sistema (Sprint 5). No reemplaza una medición con datos reales de la empresa.
 - Reducción de incidencias de coordinación, estimada de la misma manera.
 - Adopción real y sostenida por parte de técnicos reales (no simulados) — sigue sin poder estimarse, ya que depende del comportamiento humano real ante el sistema.
@@ -810,3 +821,66 @@ Estas decisiones simplifican el MVP y se tomaron a propósito. Cada una tiene un
 - Generación automática y programada de servicios recurrentes.
 - Ubicación: cálculo de distancia al domicilio del servicio, política de retención y borrado de las coordenadas, y registro de ubicación en "No Realizado".
 - Validación con una empresa real: adopción por técnicos reales y ahorro de tiempo medido.
+
+
+## Resultados del piloto
+
+El piloto se ejecutó el 09/11/2026 con el sistema desplegado (frontend y backend en Render, base en Neon). El escenario fue de 5 técnicos, 20 clientes y 20 servicios en el día, con 2 corridas de cada proceso. Los datos de respaldo (planillas, capturas de cronómetro y salida del script) están en `docs/piloto/`.
+
+### Resumen por objetivo
+
+| Objetivo | Meta | Resultado | Conclusión |
+|---|---|---|---|
+| OE1 centralizar | 100% de los servicios registrados | 20 de 20 en ambas corridas | Cumple |
+| OE2 asignar | al menos 95% asignados desde el sistema; menos de 1 min por servicio | 20 de 20 asignados; 7,2 s y 7,4 s por servicio | Cumple |
+| OE3 autonomía del técnico | al menos 90% actualizados; menos de 30 s | 18 de 18 cambios hechos por el técnico desde el celular; de 3,27 a 12,94 s | Cumple |
+| OE4 coordinación | al menos 50% menos mensajes | Manual: 23 y 24 contactos fuera del sistema; sistema: 0 | Cumple |
+| OE5 tiempo administrativo | 50% menos de tiempo | 23,2% y 25,6% menos (rango cruzado: 14,0% a 33,5%) | Cumple parcialmente |
+| OE6 viabilidad técnica | al menos 95% de operaciones exitosas | 85 de 85 (100%); prueba sin conexión sin pérdida de información | Cumple |
+
+### Tiempo administrativo (OE5)
+
+| | Manual | Sistema | Ahorro |
+|---|---|---|---|
+| Corrida 1, total (A + B) | 414,28 s | 318,15 s | 23,2% |
+| Corrida 2, total (A + B) | 370,12 s | 275,54 s | 25,6% |
+| Planificación (A) | 156,93 y 164,69 s | 143,71 y 147,87 s | 8,4% y 10,2% |
+| Gestión de los 8 cambios (B) | 257,35 y 205,43 s | 174,44 y 127,67 s | 32,2% y 37,9% |
+
+El ahorro se calcula como (manual − sistema) ÷ manual, comparando cada corrida con su par. La meta de 50% no se alcanzó. La planificación casi no mejora, porque asignar con una regla en una planilla ya es una tarea rápida. La mejora está en la gestión de los cambios de agenda y en la eliminación de contactos externos. Con estos datos, el objetivo de reducir el tiempo administrativo en un 50% sigue como hipótesis y no como resultado.
+
+### Coordinación (OE4)
+
+El proceso manual requirió entre 5 y 6 mensajes de planificación y 18 contactos por los 8 cambios (16 mensajes y 2 llamadas), es decir, 23 y 24 contactos en total. Con el sistema no hizo falta ningún contacto fuera de la aplicación en ninguna de las dos corridas. Los avisos a los técnicos (6 de 6) y al administrador (2 de 2 por servicios «no realizado») llegaron en ambas corridas, pero se verificaron después de cada corrida y no se midió cuánto tardaron. Aparecen al volver el foco a la pestaña o en la siguiente consulta automática (cada 30 s), no en tiempo real.
+
+### Autonomía del técnico (OE3)
+
+Se midieron 18 cambios de estado en un celular real: de 3,27 a 12,94 s, con medianas de 9,22 s en la primera tanda y 5,63 s en la segunda. Los cambios a «En servicio» y «Finalizado» incluyen la solicitud de ubicación. En la primera tanda, el primer cambio con ubicación incluyó además el cartel de permiso del navegador.
+
+### Viabilidad técnica (OE6)
+
+Un script ejecutó 85 operaciones críticas (inicios de sesión, listados, asignaciones y cambios de estado) contra el backend desplegado, y todas fueron exitosas. Las medianas fueron de entre 374 ms y 1598 ms. En la prueba sin conexión, con el celular en modo avión, el cambio de estado mostró un mensaje de error, el servicio siguió en su estado anterior y, al volver la conexión, el cambio se registró una sola vez en el historial.
+
+### Hallazgos del piloto
+
+Durante el piloto se encontraron y corrigieron dos problemas de uso:
+
+1. El orden de la lista de servicios cambiaba cuando varios servicios tenían la misma hora; se agregó un criterio de desempate por identificador.
+2. Al generar los servicios de los planes no había ninguna señal de que el sistema estuviera trabajando; se agregó un mensaje y el botón queda deshabilitado mientras dura la generación.
+
+También se agregó confirmación visible (éxito o error) en las acciones del administrador, y se hizo más robusto el script de limpieza de los datos del piloto.
+
+### Limitaciones
+
+- Lo ejecutó una sola persona, con respuestas de técnicos y clientes simuladas; no hay usuarios reales.
+- Hay efecto de aprendizaje entre corridas, tanto en el proceso manual como en el sistema.
+- La carga inicial de datos no entra en ningún cronómetro.
+- Dos corridas por proceso alcanzan para dar un rango, no para estimar variabilidad.
+- El script de OE6 mide la API desde una PC contra el backend gratuito de Render (que se «duerme» tras un período sin uso, por lo que se despertó antes de medir) e incluye la latencia de red; no envía ubicación en los cambios de estado.
+- La prueba sin conexión cubre el caso en que la solicitud no llega al servidor; el caso de respuesta perdida se apoya en el control de versión (error 409 al reintentar) y no se probó por separado.
+- La ubicación se registra, pero no se validó contra posiciones geográficas reales.
+- El escenario asume que el 90% de los servicios es recurrente, un supuesto del equipo y no un dato de una empresa real.
+
+### Conclusión
+
+El piloto simulado muestra que el flujo completo funciona de punta a punta con 5 técnicos y 20 servicios, que el técnico opera el sistema desde el celular en pocos segundos por cambio y que la coordinación fuera de la aplicación se elimina. El ahorro de tiempo administrativo medido (23% a 26% en total) no alcanza la meta de 50%, por lo que ese objetivo queda cumplido solo en parte. La validación de impacto real, con una empresa real, sigue pendiente, como se indica en los criterios de éxito.
