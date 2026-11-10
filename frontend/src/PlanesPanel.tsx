@@ -20,6 +20,7 @@ function PlanesPanel({
   const [fechaInicio, setFechaInicio] = useState('');
   const [duracionMinutos, setDuracionMinutos] = useState('60');
   const [mensaje, setMensaje] = useState('');
+  const [generando, setGenerando] = useState(false)
 
   async function cargarPlanes() {
     try {
@@ -71,6 +72,7 @@ function PlanesPanel({
 
   async function handleGenerar() {
     setMensaje('');
+    setGenerando(true);
     try {
       const datos = await generarServicios(token);
       setMensaje(datos.mensaje);
@@ -78,6 +80,8 @@ function PlanesPanel({
       await cargarPlanes();
     } catch (err: any) {
       setMensaje(err.message || 'No se pudieron generar los servicios.');
+    } finally {
+      setGenerando(false);
     }
   }
 
@@ -151,12 +155,21 @@ function PlanesPanel({
           <button type="submit" className={`${boton} w-full sm:w-auto`}>
             Crear plan
           </button>
-          <button type="button" onClick={handleGenerar} className={`${botonSecundario} w-full sm:w-auto`}>
-            Generar servicios de los próximos 30 días
+          <button
+            type="button"
+            onClick={handleGenerar}
+            disabled={generando}
+            className={`${botonSecundario} w-full sm:w-auto disabled:opacity-60`}
+          >
+            {generando ? 'Generando servicios…' : 'Generar servicios de los próximos 30 días'}
           </button>
         </div>
       </form>
-
+      {generando && (
+        <p className="mt-3 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
+          Generando servicios, puede tardar unos segundos…
+        </p>
+      )}
       {mensaje && <p className="mt-3 rounded-lg bg-gray-100 p-3 text-sm">{mensaje}</p>}
 
       {planes.length === 0 ? (
