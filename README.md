@@ -83,8 +83,6 @@ Corre en `http://localhost:5173`.
 
 ## Estado actual
 
-## Estado actual
-
 Recorrido completo funcionando: el administrador crea cliente, ubicación y plan de mantenimiento → el sistema genera los servicios → el administrador asigna técnico → el técnico inicia sesión, consulta sus servicios y cambia el estado → el administrador visualiza el resultado, y ambos reciben avisos de los cambios.
 
 Incluye:
@@ -151,7 +149,7 @@ Los técnicos del piloto son `piloto-tecnico1@easypool.com` a `piloto-tecnico5@e
 - Backend: https://easypool-backend.onrender.com
 - Base de datos: PostgreSQL en Neon
 
-> Nota: el backend gratuito de Render "duerme" tras 15 minutos sin uso — el primer pedido después de un rato puede tardar hasta un minuto en responder.
+> Nota: el backend gratuito de Render "duerme" tras 15 minutos sin uso — el primer pedido después de un rato puede tardar hasta un minuto en responder. Antes de usar la aplicación o de correr el script de medición, conviene abrir la URL del backend y esperar a que responda.
 
 Las credenciales de este deployment no están documentadas públicamente por seguridad; contactar al equipo si se necesitan para la revisión.
 

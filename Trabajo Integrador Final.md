@@ -28,7 +28,7 @@ El caso está inspirado en un negocio real de mantenimiento de piscinas observad
 
 A partir de esa observación informal, el equipo asume como hipótesis de trabajo que la planificación diaria insume aproximadamente 4 horas, y que el retrabajo generado por cambios de último momento agrega entre 2 y 3 horas adicionales. Estos valores no provienen de una medición ni de una entrevista con el propietario: son una estimación del equipo a partir de lo observado, y se tratarán como una hipótesis a validar (o descartar) durante el proyecto, no como un dato confirmado del problema.
 
-Esta desconexión de la información puede generar retrabajo ante cambios de último momento, dificultades para conocer de manera actualizada el estado de los servicios y posibles demoras en la coordinación con los técnicos y la atención al cliente. Estas consecuencias deberán ser validadas mediante la observación y medición del proceso actual. Como hipotesis de solución, una plataforma centralizada podría permitir gestionar la agenda, automatizar la asignación de rutas y registrar el estado de los servicios en una única plataforma accesible desde cualquier dispositivo.
+Esta desconexión de la información puede generar retrabajo ante cambios de último momento, dificultades para conocer de manera actualizada el estado de los servicios y posibles demoras en la coordinación con los técnicos y la atención al cliente. Estas consecuencias deberán ser validadas mediante la observación y medición del proceso actual. Como hipótesis de solución, una plataforma centralizada podría permitir gestionar la agenda, automatizar la asignación de rutas y registrar el estado de los servicios en una única plataforma accesible desde cualquier dispositivo.
 
 ### Identificación de Actores y Necesidades
 
@@ -47,7 +47,7 @@ Esta desconexión de la información puede generar retrabajo ante cambios de úl
 ### Propuesta de Valor Agregado
 La solución propuesta no solo "digitalizaría" el Excel, sino que transformaría el proceso porque:
 - Optimización de recorridos: La optimización del orden de los servicios busca reducir los tiempos de traslado y el tiempo entre servicios, así como el consumo de combustible.
--Facilita la reprogramación: Ante una modificación o demora, el administrador podrá modificar manualmente la asignación o el horario de un servicio desde la plataforma. El cambio quedará reflejado en la agenda correspondiente, evitando tener que actualizar diferentes medios de comunicación de manera independiente.
+- Facilita la reprogramación: Ante una modificación o demora, el administrador podrá modificar manualmente la asignación o el horario de un servicio desde la plataforma. El cambio quedará reflejado en la agenda correspondiente, evitando tener que actualizar diferentes medios de comunicación de manera independiente.
 - Mejora la experiencia: El técnico trabaja con una herramienta profesional y el dueño recupera tiempo para tareas estratégicas
 
 
@@ -70,13 +70,13 @@ El valor agregado del desarrollo a medida no se considerará demostrado de antem
 
 ## Definición del stack tecnológico
 
-- **Frontend: React + TypeScript** para una aplicación web responsiva con los tecnicos utilizandola en el telefono y el dueño de la empresa principalmente en pc. React permite construir una interfaz adaptable a diferentes dispositivos, mientras que TypeScript aporta tipado estático, ayudando a detectar errores durante el desarrollo y facilitando el mantenimiento del código a medida que aumenta la complejidad del sistema.
+- **Frontend: React + TypeScript** para una aplicación web responsiva con los técnicos utilizandola en el telefono y el dueño de la empresa principalmente en pc. React permite construir una interfaz adaptable a diferentes dispositivos, mientras que TypeScript aporta tipado estático, ayudando a detectar errores durante el desarrollo y facilitando el mantenimiento del código a medida que aumenta la complejidad del sistema.
 
 - **Backend: Node.js + Express + TypeScript** El equipo utilizará TypeScript tanto en frontend como en backend, reduciendo la diversidad tecnológica y facilitando el intercambio de conocimientos y estructuras entre ambas capas. Node.js dispone de un ecosistema maduro para el desarrollo de APIs HTTP, y se elige principalmente por la simplicidad para un equipo que ya conoce JavaScript, la facilidad de mantenimiento y no por requerimientos de alta concurrencia, que no son relevantes para el tamaño de esta empresa.
 
 - **Base de Datos: PostgreSQL (Relacional)** Al manejar clientes, técnicos, turnos y rutas, los datos tienen una estructura clara y relaciones importantes que requieren integridad transaccional.
 
-- **Despliegue: Contenedores (Docker)** en una PaaS (Plataforma como Servicio). Docker asegura que la aplicación funcione igual en desarrollo y producción, mientras que una PaaS reduce la complejidad operativa inicial.
+- **Despliegue: PaaS (Render y Neon).** El frontend y el backend se despliegan en Render y la base de datos en Neon (PostgreSQL gestionado). Docker se usa solo en el entorno local de desarrollo, para levantar PostgreSQL con `docker compose`. Una PaaS reduce la complejidad operativa inicial.
 
 - **Estilos:** Tailwind CSS (clases utilitarias). No estaba en la propuesta original: se incorporó en la etapa final para cumplir con la interfaz responsiva prometida (uso desde el teléfono del técnico) sin mantener hojas de estilo propias. Se usa un conjunto chico de clases compartidas (`frontend/src/estilos.ts`) y no se buscó un diseño elaborado, priorizando el núcleo funcional.
 
@@ -98,7 +98,7 @@ Al cierre del proyecto, el backend cuenta con **78 pruebas automatizadas** (10 s
 
 La elección del stack se fundamenta tanto en las características del problema como en los conocimientos actuales del equipo.
 
--Naturaleza del problema: El sistema necesita realizar principalmente operaciones de consulta y modificación de datos, como crear servicios, consultar agendas, actualizar estados y registrar información. Node.js y Express resultan adecuados para desarrollar una API web para este tipo de operaciones.
+- Naturaleza del problema: El sistema necesita realizar principalmente operaciones de consulta y modificación de datos, como crear servicios, consultar agendas, actualizar estados y registrar información. Node.js y Express resultan adecuados para desarrollar una API web para este tipo de operaciones.
 
 -Conocimientos previos del equipo: El equipo posee conocimientos previos de JavaScript, lo que representa una ventaja para trabajar tanto en frontend como en backend. Sin embargo, se reconoce que conocer JavaScript no implica dominar React, TypeScript, Node.js, Express, autenticación, Docker o despliegue. Por este motivo, la elección del stack deberá ser validada técnicamente durante los primeros sprints.
 
@@ -133,11 +133,11 @@ y ajustar el dimensionamiento del MVP en función de esos datos reales, en lugar
 
 ### Limitaciones y riesgos
 
-- El equipo no domina especifcamente React y NodeJS por lo que la curva de aprendizaje puede llegar a ser un problema incumpliendo plazos de entrega. *(ver mitigación completa en Riesgos Iniciales, Riesgo 1)*
+- El equipo no domina especificamente React y NodeJS por lo que la curva de aprendizaje puede llegar a ser un problema incumpliendo plazos de entrega. *(ver mitigación completa en Riesgos Iniciales, Riesgo 1)*
 
 - Madurez de librerías específicas: Para la automatización de rutas, debemos verificar la existencia de paquetes maduros y con mantenimiento activo; de lo contrario, podriamos encontrar errores no documentados
 
-- Conectividad en campo: Una limitación intrínseca de una aplicación web es la dependencia de la conexión a internet de los técnicos para reportar en tiempo real, algo que debemos considerar en el diseño de la solución
+- Conectividad en campo: Una limitación intrínseca de una aplicación web es la dependencia de la conexión a internet de los técnicos para reportar el estado de los servicios, algo que debemos considerar en el diseño de la solución
 
 
 
@@ -228,7 +228,7 @@ Dado que el equipo no tiene acceso a la empresa real, el punto de partida (4 hs 
 
 <u>Métrica:</u>
 
-- Se documentará el supuesto de partida (4–7 hs/día) como hipótesis del equipo, sin baseline real.
+- 6–7 hs/día (4 hs de planificación + 2–3 hs de retrabajo) como hipótesis del equipo, sin baseline real.
 
 - La comparación de tiempos se obtendrá simulando ambos procesos (manual vs. sistema) con el mismo escenario de datos en Sprint 5. Esto da una estimación relativa entre ambos flujos, pero no reemplaza una medición con la empresa real.
 
@@ -290,7 +290,7 @@ Un portal específico para clientes o un sistema de notificaciones destinado dir
 **Sistema**
 - Base de datos centralizada.
 - Actualización de la información por consulta periódica, no en tiempo real: la lista de servicios del administrador se actualiza al volver el foco a la pestaña, cuando llega una notificación nueva y cada 30 segundos; la del técnico, al abrir la aplicación y cuando llega una notificación nueva.
-- Notificación básica ante cambios: al asignar, reasignar, reprogramar o cancelar un servicio, el sistema genera una notificación dentro de la aplicación (lista con contador de no leídas) para el técnico afectado; cuando un técnico marca un servicio como No Realizado, se notifica a los administradores. No se implementan push notifications ni envío de SMS/email en el MVP, para no incorporar infraestructura adicional (queda como mejora futura si se demuestra necesario). Las notificaciones se consultan al abrir la aplicación, al volver el foco a la pestaña y cada 30 segundos; no se utilizan WebSockets ni notificaciones push, por lo que la actualización no es en tiempo real.
+- Notificación básica ante cambios: al asignar, reasignar, reprogramar o cancelar un servicio, el sistema genera una notificación dentro de la aplicación (lista con contador de no leídas) para el técnico afectado; cuando un técnico marca un servicio como No Realizado, se notifica a los administradores. No se implementan push notifications ni envío de SMS/email en el MVP, para no incorporar infraestructura adicional (queda como mejora futura si se demuestra necesario). Las notificaciones se consultan al abrir la aplicación, al volver el foco a la pestaña y cada 30 segundos.
 - Registro histórico de servicios.
 - Registro de fecha/hora de las operaciones.
 
@@ -594,10 +594,7 @@ Implementar además, del lado del administrador:
 
 Entregable
 
-Un integrante del equipo, actuando como técnico, puede realizar un servicio completo
-(incluyendo marcarlo como no realizado) utilizando la aplicación web desde un
-teléfono móvil real. Esto valida que la interfaz funciona correctamente en un
-dispositivo físico, no que fue probada por un técnico real de una empresa.
+Un integrante del equipo, actuando como técnico, puede realizar un servicio completo (incluyendo marcarlo como no realizado) utilizando la aplicación web (validado además en el piloto del Sprint 5 con un celular real). Esto valida que la interfaz funciona correctamente en un dispositivo físico, no que fue probada por un técnico real de una empresa.
 
 > **Sprint 3 extendido:** además de lo previsto, se incorporó una ronda de correcciones del tutor (autorización por rol, concurrencia, máquina de estados, recurrencia idempotente y superposición de agenda). Por eso parte de la interfaz del técnico (detalle del servicio, observaciones y agenda del día) se completó recién a partir del 19/10, ya durante el Sprint 4.
 
@@ -637,7 +634,7 @@ Administrador lo ve
 
 26/10 al 12/11
 
-En estas semanas no se agregan funcionalidades.
+En estas semanas no se agregan funcionalidades nuevas. Las únicas modificaciones fueron el registro mínimo de ubicación (incorporado al inicio del sprint, antes de las mediciones) y las correcciones de usabilidad detectadas durante el piloto (ver «Hallazgos del piloto»).
 
 Se realizó:
 
@@ -825,7 +822,7 @@ Estas decisiones simplifican el MVP y se tomaron a propósito. Cada una tiene un
 
 ## Resultados del piloto
 
-El piloto se ejecutó el 09/11/2026 con el sistema desplegado (frontend y backend en Render, base en Neon). El escenario fue de 5 técnicos, 20 clientes y 20 servicios en el día, con 2 corridas de cada proceso. Los datos de respaldo (planillas, capturas de cronómetro y salida del script) están en `docs/piloto/`.
+El piloto se ejecutó entre el 09/11 y el 10/11/2026 con el sistema desplegado (frontend y backend en Render, base en Neon). El escenario fue de 5 técnicos, 20 clientes y 20 servicios en el día, con 2 corridas de cada proceso. Los datos de respaldo (planillas, capturas de cronómetro y salida del script) están en `docs/piloto/`.
 
 ### Resumen por objetivo
 
@@ -859,7 +856,7 @@ Se midieron 18 cambios de estado en un celular real: de 3,27 a 12,94 s, con medi
 
 ### Viabilidad técnica (OE6)
 
-Un script ejecutó 85 operaciones críticas (inicios de sesión, listados, asignaciones y cambios de estado) contra el backend desplegado, y todas fueron exitosas. Las medianas fueron de entre 374 ms y 1598 ms. En la prueba sin conexión, con el celular en modo avión, el cambio de estado mostró un mensaje de error, el servicio siguió en su estado anterior y, al volver la conexión, el cambio se registró una sola vez en el historial.
+Un script ejecutó 85 operaciones críticas (inicios de sesión, listados, asignaciones y cambios de estado) contra el backend desplegado, y todas fueron exitosas. Las medianas fueron de entre 374 ms y 1598 ms. En la prueba sin conexión, con el celular en modo avión, el cambio de estado mostró un mensaje de error, el servicio siguió en su estado anterior y, al volver la conexión, el cambio se registró una sola vez en el historial. Respecto del tiempo de respuesta: las operaciones de la API tardaron entre 0,4 y 1,6 s (medianas) y, en el celular, cada cambio de estado completo, con la solicitud de ubicación, tardó entre 3,3 y 12,9 s. Se considera aceptable por estar por debajo de la meta de 30 s definida en OE3; es una valoración del equipo, no una medición de la percepción de usuarios.
 
 ### Hallazgos del piloto
 
@@ -883,4 +880,4 @@ También se agregó confirmación visible (éxito o error) en las acciones del a
 
 ### Conclusión
 
-El piloto simulado muestra que el flujo completo funciona de punta a punta con 5 técnicos y 20 servicios, que el técnico opera el sistema desde el celular en pocos segundos por cambio y que la coordinación fuera de la aplicación se elimina. El ahorro de tiempo administrativo medido (23% a 26% en total) no alcanza la meta de 50%, por lo que ese objetivo queda cumplido solo en parte. La validación de impacto real, con una empresa real, sigue pendiente, como se indica en los criterios de éxito.
+El piloto simulado muestra que el flujo completo funciona de punta a punta con 5 técnicos y 20 servicios, que el técnico opera el sistema desde el celular en pocos segundos por cambio y que la coordinación fuera de la aplicación se elimina en el escenario simulado. El ahorro de tiempo administrativo medido (23% a 26% en total) no alcanza la meta de 50%, por lo que ese objetivo queda cumplido solo en parte. La validación de impacto real, con una empresa real, sigue pendiente, como se indica en los criterios de éxito.
