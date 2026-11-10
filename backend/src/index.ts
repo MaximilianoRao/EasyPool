@@ -294,7 +294,7 @@ app.get('/mis-servicios', verificarToken, verificarRol('tecnico'), async (req: R
        JOIN ubicacion u ON u.id = s.ubicacion_id
        JOIN cliente c ON c.id = u.cliente_id
        WHERE s.tecnico_id = $1
-       ORDER BY s.fecha_hora`,
+       ORDER BY s.fecha_hora, s.id`,
       [tecnicoId]
     );
 
@@ -565,7 +565,7 @@ app.get('/servicios', verificarToken, verificarRol('administrador'), async (req:
         WHERE servicio_id = s.id AND estado_nuevo = 'finalizado' AND latitud IS NOT NULL
         ORDER BY timestamp DESC LIMIT 1
       ) fi ON true
-      ORDER BY s.fecha_hora`
+      ORDER BY s.fecha_hora, s.id`
     );
 
     res.json(resultado.rows);
