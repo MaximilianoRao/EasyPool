@@ -13,3 +13,4 @@ config.env
 *.log
 .env
 .env.production
+.env.test

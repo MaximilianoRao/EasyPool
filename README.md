@@ -13,6 +13,15 @@ Sistema web/móvil para la automatización de agenda, clientes y mantenimiento d
 
 **Tutor**: Oscar Londero
 
+## Entrega final
+
+| Recurso | Enlace |
+|---|---|
+| Informe Final (PDF) | [docs/informe/Informe_Final_EasyPool.pdf](docs/informe/Informe_Final_EasyPool.pdf) |
+| Video de presentación | <URL del video> |
+| Versión evaluada | tag `v1.0-entrega-final` |
+| Sistema desplegado | https://easypool-frontend.onrender.com (ver «Cuentas de demostración») |
+| Documento de análisis y diseño | [Trabajo Integrador Final.md](Trabajo%20Integrador%20Final.md) |
 
 ## Stack
 
@@ -31,7 +40,16 @@ Sistema web/móvil para la automatización de agenda, clientes y mantenimiento d
 
 ### 1. Variables de entorno
 
-Copiar `.env.example` a `.env` en la raíz, y `backend/.env.example` a `backend/.env`, ajustando el puerto si ya tenés algo corriendo en el 5432.
+   Copiar los archivos de ejemplo y ajustar lo necesario:
+
+   | Copiar | A | Variable | Para qué sirve |
+   |---|---|---|---|
+   | `.env.example` | `.env` | `DB_PORT` | Puerto en el que Docker publica PostgreSQL (5432). |
+   | `backend/.env.example` | `backend/.env` | `DATABASE_URL` | Conexión a la base; usar el mismo puerto que `DB_PORT`. |
+   | | | `JWT_SECRET` | Clave para firmar los tokens (usar un valor propio). |
+   | | | `PORT` | Puerto de la API (por defecto 3000). |
+   | `frontend/.env.example` | `frontend/.env` | `VITE_API_URL` | URL de la API (por defecto `http://localhost:3000`). Opcional. |
+   | `backend/.env.test.example` | `backend/.env.test` | `DATABASE_URL`, `JWT_SECRET` | Base de datos separada para los tests. Solo se usa con `pnpm test`. |
 
 ### 2. Base de datos
 
@@ -151,7 +169,15 @@ Los técnicos del piloto son `piloto-tecnico1@easypool.com` a `piloto-tecnico5@e
 
 > Nota: el backend gratuito de Render "duerme" tras 15 minutos sin uso — el primer pedido después de un rato puede tardar hasta un minuto en responder. Antes de usar la aplicación o de correr el script de medición, conviene abrir la URL del backend y esperar a que responda.
 
-Las credenciales de este deployment no están documentadas públicamente por seguridad; contactar al equipo si se necesitan para la revisión.
+## Cuentas de demostración
 
+El sistema desplegado requiere iniciar sesión. Para evaluarlo se pueden usar estas cuentas de demostración (datos de prueba, no reales):
+
+| Rol | Email | Contraseña |
+|---|---|---|
+| Administrador | admin-demo@easypool.com | 0gk9lXg4F76T |
+| Técnico | tecnico-demo@easypool.com | lSY44PC6uQaU |
+
+Los datos del sistema desplegado son simulados y pueden reiniciarse.
 <br>
 

@@ -1,0 +1,17 @@
+Despertando el backend...
+
+=== Resultados ===
+Servicios del día encontrados (sin asignar al empezar): 18
+Asignados desde el sistema: 18
+Finalizados con el estado actualizado: 18
+Operaciones: 85, exitosas: 85 (100%)
+
+Por operación (cantidad, exitosas, mediana ms, máximo ms):
+- login: 6, 6, 908 ms, 1887 ms
+- listar técnicos: 1, 1, 378 ms, 378 ms
+- listar servicios: 1, 1, 553 ms, 553 ms
+- asignar servicio: 18, 18, 1598 ms, 1647 ms
+- listar mis servicios: 5, 5, 374 ms, 380 ms
+- cambiar estado a en_camino: 18, 18, 1077 ms, 1128 ms
+- cambiar estado a en_servicio: 18, 18, 1074 ms, 1144 ms
+- cambiar estado a finalizado: 18, 18, 1075 ms, 1137 ms
