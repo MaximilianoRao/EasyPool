@@ -126,7 +126,7 @@ Prueba sin conexión (celular real, modo avión), servicio 417:
 | Se restablece la conexión + «Marcar en camino» | El estado pasó a «En camino» |
 | `historial_estado` del servicio | 1 solo registro `pendiente → en_camino` (id 169); sin duplicados ni registros del intento fallido |
 
-Resultado: sin pérdida de información ante la falla de conexión. Capturas en `docs/piloto/capturas/oe6-sin-conexion-*.png`.
+Resultado: sin pérdida de información ante la falla de conexión. Capturas en `docs/piloto/capturas/oe6-sin-conexion-*.jpeg`.
 
 Alcance de la prueba: se verificó el caso en que la solicitud no llega al servidor. No se probó el caso en que la solicitud llega pero se pierde la respuesta; en ese caso el control de versión del servicio (error 409 al reintentar) evita aplicar el cambio dos veces.
 
