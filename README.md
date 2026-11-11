@@ -18,7 +18,7 @@ Sistema web/móvil para la automatización de agenda, clientes y mantenimiento d
 | Recurso | Enlace |
 |---|---|
 | Informe Final (PDF) | [docs/informe/Informe_Final_EasyPool.pdf](docs/informe/Informe_Final_EasyPool.pdf) |
-| Video de presentación | <URL del video> |
+| Video de presentación | https://youtu.be/ZVagtkr7ObY |
 | Versión evaluada | tag `v1.0-entrega-final` |
 | Sistema desplegado | https://easypool-frontend.onrender.com (ver «Cuentas de demostración») |
 | Documento de análisis y diseño | [Trabajo Integrador Final.md](Trabajo%20Integrador%20Final.md) |
